@@ -1,0 +1,21 @@
+# Backend
+/backend/node_modules
+/backend/package-lock.json
+/backend/pnpm-lock.yaml
+/backend/.env
+/backend/.env.example
+
+# Frontend (Flutter)
+/frontend/.dart_tool/
+/frontend/.pub/
+/frontend/.pub-cache/
+/frontend/build/
+/frontend/.flutter-plugins
+/frontend/.flutter-plugins-dependencies
+
+# Documentation
+/docs/
+
+# System & Tool Files
+rules.md
+.DS_Store
