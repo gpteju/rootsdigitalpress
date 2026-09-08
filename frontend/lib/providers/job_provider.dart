@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/job_model.dart';
 import '../services/api_service.dart';
+import '../core/constants/api_endpoints.dart';
 
 class JobProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -21,12 +22,12 @@ class JobProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.get('/jobs');
+      final response = await _apiService.get(ApiEndpoints.jobs);
       if (response.success && response.data != null) {
         final List data = response.data;
         _jobs = data.map((j) => JobModel.fromJson(j)).toList();
       } else {
-        _errorMessage = response.message ?? 'Failed to load jobs';
+        _errorMessage = response.message;
       }
     } catch (e) {
       _errorMessage = 'Error fetching jobs: $e';
@@ -42,10 +43,10 @@ class JobProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.post('/jobs', job.toJson());
+      final response = await _apiService.post(ApiEndpoints.jobs, job.toJson());
       if (response.success && response.data != null) {
+        await fetchJobs();
         final created = JobModel.fromJson(response.data);
-        _jobs.insert(0, created);
         _isLoading = false;
         notifyListeners();
         return created;
@@ -65,7 +66,7 @@ class JobProvider with ChangeNotifier {
 
   Future<bool> printJob(int id) async {
     try {
-      final response = await _apiService.post('/jobs/$id/print', {});
+      final response = await _apiService.post(ApiEndpoints.jobPrint(id), {});
       if (response.success) {
         return true;
       } else {
@@ -82,7 +83,7 @@ class JobProvider with ChangeNotifier {
 
   Future<bool> emailJob(int id) async {
     try {
-      final response = await _apiService.post('/jobs/$id/email', {});
+      final response = await _apiService.post(ApiEndpoints.jobEmail(id), {});
       if (response.success) {
         return true;
       } else {

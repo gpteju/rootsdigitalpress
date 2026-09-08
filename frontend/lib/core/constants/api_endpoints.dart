@@ -39,4 +39,11 @@ class ApiEndpoints {
   // Printer Settings
   static String printerSettings = '$baseUrl/settings/printer';
   static String testPrinter = '$baseUrl/settings/printer/test';
+  static String printReceipt = '$baseUrl/settings/printer/print-receipt';
+
+  // Job Estimates (Estimate Customers)
+  static String jobs = '$baseUrl/jobs';
+  static String jobPrint(int id) => '$baseUrl/jobs/$id/print';
+  static String jobEmail(int id) => '$baseUrl/jobs/$id/email';
+  static String jobPdf(int id) => '$baseUrl/jobs/$id/pdf';
 }

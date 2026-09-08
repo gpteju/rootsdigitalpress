@@ -65,6 +65,7 @@ class SalesBillModel {
   final String? customerName;
   final String? customerPhone;
   final String? taxName;
+  final double taxPercentage;
   final String? companyStateSnapshot;
   final String? customerStateSnapshot;
   final bool isInterstate;
@@ -80,6 +81,13 @@ class SalesBillModel {
   final String? notes;
   final List<SalesBillItemModel> items;
 
+  double get totalTaxAmount {
+    final explicit = cgstAmount + sgstAmount + igstAmount;
+    if (explicit > 0) return explicit;
+    final diff = grandTotal - subtotal - roundOff;
+    return diff > 0.01 ? diff : 0.0;
+  }
+
   SalesBillModel({
     this.id,
     this.billNumber,
@@ -89,6 +97,7 @@ class SalesBillModel {
     this.customerName,
     this.customerPhone,
     this.taxName,
+    this.taxPercentage = 0.0,
     this.companyStateSnapshot,
     this.customerStateSnapshot,
     this.isInterstate = false,
@@ -118,6 +127,7 @@ class SalesBillModel {
       customerName: json['customer_name'],
       customerPhone: json['customer_phone'],
       taxName: json['tax_name'],
+      taxPercentage: double.tryParse(json['tax_percentage']?.toString() ?? '0') ?? 0.0,
       companyStateSnapshot: json['company_state_snapshot'],
       customerStateSnapshot: json['customer_state_snapshot'],
       isInterstate: json['is_interstate'] == 1 || json['is_interstate'] == true,

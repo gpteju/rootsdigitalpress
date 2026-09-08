@@ -127,8 +127,47 @@ async function testPrinter(req, res, next) {
   }
 }
 
+/**
+ * POST /api/settings/printer/print-receipt
+ * Accepts base64-encoded ESC/POS raw bytes from the Flutter frontend
+ * and relays them to the configured thermal printer via TCP socket.
+ * This enables silent direct printing from Flutter Web without any browser print dialog.
+ */
+async function printReceipt(req, res, next) {
+  try {
+    const rows = await query('SELECT * FROM printer_settings ORDER BY id ASC LIMIT 1');
+    if (rows.length === 0 || rows[0].printer_enabled !== 1) {
+      return sendError(res, 'Thermal printer is DISABLED. Please enable printer and configure IP/Port in Printer Settings before printing.');
+    }
+
+    const setting = rows[0];
+    if (!setting.printer_ip || !setting.printer_ip.trim()) {
+      return sendError(res, 'Printer IP address is not configured. Please save a valid Printer IP in Printer Settings.');
+    }
+
+    const { bytes_base64 } = req.body;
+    if (!bytes_base64) {
+      return sendError(res, 'No print data received. Field "bytes_base64" is required.');
+    }
+
+    // Decode the base64 ESC/POS bytes from the frontend
+    const printBuffer = Buffer.from(bytes_base64, 'base64');
+
+    await sendToPrinter({
+      ip: setting.printer_ip,
+      port: setting.printer_port || 9100,
+      data: printBuffer
+    });
+
+    return sendSuccess(res, null, `Receipt printed successfully to ${setting.printer_ip}:${setting.printer_port || 9100}`);
+  } catch (err) {
+    return sendError(res, `Print failed: ${err.message}`, [], 500);
+  }
+}
+
 module.exports = {
   getPrinterSettings,
   updatePrinterSettings,
-  testPrinter
+  testPrinter,
+  printReceipt
 };

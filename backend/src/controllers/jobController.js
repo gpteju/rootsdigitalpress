@@ -126,7 +126,7 @@ async function createJob(req, res, next) {
           paper_id: paper.id,
           printout_type_id: printout.id,
           paper_name_snapshot: paper.paper_name,
-          printout_type_name_snapshot: printout.type_name,
+          printout_type_name_snapshot: printout.name || printout.type_name || '',
           quantity,
           first_copy_rate: firstCopyRate,
           additional_copy_rate: additionalCopyRate,
@@ -164,13 +164,13 @@ async function createJob(req, res, next) {
             jobDetailId,
             item.paper_id,
             item.printout_type_id,
-            item.paper_name_snapshot,
-            item.printout_type_name_snapshot,
-            item.quantity,
-            item.first_copy_rate,
-            item.additional_copy_rate,
-            item.calculated_amount,
-            item.calculated_amount // No tax
+            item.paper_name_snapshot || '',
+            item.printout_type_name_snapshot || '',
+            item.quantity ?? 0,
+            item.first_copy_rate ?? 0,
+            item.additional_copy_rate ?? 0,
+            item.calculated_amount ?? 0,
+            item.calculated_amount ?? 0
           ]
         );
 
@@ -193,8 +193,23 @@ async function createJob(req, res, next) {
         );
       }
 
-      const [finalJob] = await conn.execute('SELECT * FROM job_details WHERE id = ?', [jobDetailId]);
-      return finalJob[0];
+      const [finalJob] = await conn.execute(`
+        SELECT 
+          j.*,
+          c.customer_name,
+          c.phone AS customer_phone,
+          c.email AS customer_email
+        FROM job_details j
+        JOIN customers c ON j.customer_id = c.id
+        WHERE j.id = ?
+      `, [jobDetailId]);
+
+      const [itemsRows] = await conn.execute(
+        'SELECT * FROM job_detail_items WHERE job_detail_id = ?',
+        [jobDetailId]
+      );
+
+      return { ...finalJob[0], items: itemsRows };
     });
 
     return sendSuccess(res, createdJob, 'Job estimate created successfully', 201);

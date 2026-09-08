@@ -20,7 +20,8 @@ async function getSalesBills(req, res, next) {
         c.customer_name,
         c.phone AS customer_phone,
         c.email AS customer_email,
-        t.tax_name
+        t.tax_name,
+        t.tax_percentage
       FROM sales_bills b
       JOIN customers c ON b.customer_id = c.id
       JOIN taxes t ON b.tax_id = t.id
@@ -264,8 +265,20 @@ async function createSalesBill(req, res, next) {
         );
       }
 
-      const [finalBill] = await conn.execute('SELECT * FROM sales_bills WHERE id = ?', [billId]);
-      return finalBill[0];
+      const [bills] = await conn.execute(
+        `SELECT b.*, c.customer_name, c.address AS customer_address, c.city AS customer_city, 
+                c.state AS customer_state, c.gstin AS customer_gstin, c.phone AS customer_phone, c.email AS customer_email,
+                t.tax_name, t.tax_percentage
+         FROM sales_bills b
+         JOIN customers c ON b.customer_id = c.id
+         JOIN taxes t ON b.tax_id = t.id
+         WHERE b.id = ?`,
+        [billId]
+      );
+      const bill = bills[0];
+      const [items] = await conn.execute('SELECT * FROM sales_bill_items WHERE sales_bill_id = ?', [billId]);
+      bill.items = items;
+      return bill;
     });
 
     return sendSuccess(res, createdBill, 'Sales Bill created successfully', 201);

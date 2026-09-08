@@ -7,5 +7,6 @@ const controller = require('../controllers/settingsController');
 router.get('/printer', controller.getPrinterSettings);
 router.post('/printer', controller.updatePrinterSettings);
 router.post('/printer/test', controller.testPrinter);
+router.post('/printer/print-receipt', controller.printReceipt);
 
 module.exports = router;

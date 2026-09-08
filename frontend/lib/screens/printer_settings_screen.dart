@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
 import '../models/printer_settings_model.dart';
 import '../providers/printer_provider.dart';
+import '../providers/company_provider.dart';
+import '../services/printer_service.dart';
 
 class PrinterSettingsScreen extends StatefulWidget {
   const PrinterSettingsScreen({super.key});
@@ -72,22 +74,13 @@ class _PrinterSettingsScreenState extends State<PrinterSettingsScreen> {
   }
 
   Future<void> _runTestPrint() async {
-    if (!_printerEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Printer is currently DISABLED. Please enable printer and save configuration first.'), backgroundColor: AppColors.error),
-      );
-      return;
-    }
+    final company = context.read<CompanyProvider>().company;
+    final companyName = company?.companyName ?? 'ROOTS DIGITAL PRESS';
 
-    final provider = context.read<PrinterProvider>();
-    final success = await provider.testPrinter();
-
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Test print sent successfully to thermal printer!'), backgroundColor: AppColors.success),
-        );
-      } else if (provider.errorMessage != null) {
+    try {
+      await PrinterService.printTest(companyName: companyName);
+    } catch (e) {
+      if (mounted) {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
@@ -98,7 +91,7 @@ class _PrinterSettingsScreenState extends State<PrinterSettingsScreen> {
                 Text('Test Print Failed'),
               ],
             ),
-            content: Text(provider.errorMessage!),
+            content: Text(e.toString().replaceAll('Exception: ', '')),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
             ],

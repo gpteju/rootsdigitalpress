@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../core/constants/api_endpoints.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -37,11 +38,22 @@ class ApiService {
       'Authorization': 'Bearer $bearerToken',
   };
 
+  Uri _resolveUri(String endpoint) {
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      return Uri.parse(endpoint);
+    }
+    final base = ApiEndpoints.baseUrl.endsWith('/')
+        ? ApiEndpoints.baseUrl.substring(0, ApiEndpoints.baseUrl.length - 1)
+        : ApiEndpoints.baseUrl;
+    final path = endpoint.startsWith('/') ? endpoint : '/$endpoint';
+    return Uri.parse('$base$path');
+  }
+
   /// Performs GET request
   Future<ApiResponse<T>> get<T>(String endpoint, {T Function(dynamic)? parser}) async {
     try {
       debugPrint('[API GET] $endpoint');
-      final response = await http.get(Uri.parse(endpoint), headers: _headers);
+      final response = await http.get(_resolveUri(endpoint), headers: _headers);
       return _processResponse<T>(response, parser);
     } catch (e) {
       debugPrint('[API GET ERROR] $e');
@@ -57,7 +69,7 @@ class ApiService {
     try {
       debugPrint('[API POST] $endpoint');
       final response = await http.post(
-        Uri.parse(endpoint),
+        _resolveUri(endpoint),
         headers: _headers,
         body: jsonEncode(body),
       );
@@ -76,7 +88,7 @@ class ApiService {
     try {
       debugPrint('[API PUT] $endpoint');
       final response = await http.put(
-        Uri.parse(endpoint),
+        _resolveUri(endpoint),
         headers: _headers,
         body: jsonEncode(body),
       );
@@ -94,7 +106,7 @@ class ApiService {
   Future<ApiResponse<T>> delete<T>(String endpoint, {T Function(dynamic)? parser}) async {
     try {
       debugPrint('[API DELETE] $endpoint');
-      final response = await http.delete(Uri.parse(endpoint), headers: _headers);
+      final response = await http.delete(_resolveUri(endpoint), headers: _headers);
       return _processResponse<T>(response, parser);
     } catch (e) {
       debugPrint('[API DELETE ERROR] $e');

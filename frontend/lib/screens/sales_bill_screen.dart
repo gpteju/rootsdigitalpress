@@ -14,6 +14,7 @@ import '../providers/paper_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/job_provider.dart';
 import '../widgets/app_data_table.dart';
+import '../widgets/thermal_receipt_dialog.dart';
 
 class SalesBillScreen extends StatefulWidget {
   const SalesBillScreen({super.key});
@@ -188,8 +189,17 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
             _notesController.clear();
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Job Estimate #${created.jobNumber} created successfully!'), backgroundColor: AppColors.success),
+            SnackBar(
+              content: Text('Job Estimate #${created.jobNumber} created successfully!'),
+              backgroundColor: AppColors.success,
+              action: SnackBarAction(
+                label: 'PRINT',
+                textColor: Colors.white,
+                onPressed: () => ThermalReceiptDialog.showForJob(context, created),
+              ),
+            ),
           );
+          ThermalReceiptDialog.showForJob(context, created);
         } else if (provider.errorMessage != null) {
           showDialog(
             context: context,
@@ -238,8 +248,17 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
             _notesController.clear();
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Sales Bill #${created.billNumber} created successfully!'), backgroundColor: AppColors.success),
+            SnackBar(
+              content: Text('Sales Bill #${created.billNumber} created successfully!'),
+              backgroundColor: AppColors.success,
+              action: SnackBarAction(
+                label: 'PRINT',
+                textColor: Colors.white,
+                onPressed: () => ThermalReceiptDialog.showForSalesBill(context, created),
+              ),
+            ),
           );
+          ThermalReceiptDialog.showForSalesBill(context, created);
         } else if (provider.errorMessage != null) {
           showDialog(
             context: context,
@@ -602,6 +621,17 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
               AppTableColumn(title: 'Bill Number', builder: (b) => Text(b.billNumber ?? '', style: const TextStyle(fontWeight: FontWeight.bold))),
               AppTableColumn(title: 'Date', builder: (b) => Text(Formatters.formatDate(b.billDate))),
               AppTableColumn(title: 'Customer', builder: (b) => Text(b.customerName ?? '')),
+              AppTableColumn(
+                title: 'Tax',
+                builder: (b) {
+                  final taxAmt = b.totalTaxAmount;
+                  final pctStr = b.taxPercentage > 0 ? ' (${b.taxPercentage.toInt()}%)' : '';
+                  return Text(
+                    taxAmt > 0 ? '${Formatters.formatCurrency(taxAmt)}$pctStr' : '₹0.00',
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  );
+                },
+              ),
               AppTableColumn(title: 'Grand Total', builder: (b) => Text(Formatters.formatCurrency(b.grandTotal), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))),
               AppTableColumn(title: 'Paid', builder: (b) => Text(Formatters.formatCurrency(b.paidAmount), style: const TextStyle(color: AppColors.success))),
               AppTableColumn(title: 'Balance', builder: (b) => Text(Formatters.formatCurrency(b.balanceAmount), style: TextStyle(fontWeight: FontWeight.bold, color: b.balanceAmount > 0 ? AppColors.error : AppColors.success))),
@@ -611,18 +641,8 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.print_outlined, color: AppColors.secondary, size: 20),
-                      tooltip: 'Print Thermal Receipt',
-                      onPressed: () async {
-                        final ok = await billingProvider.printInvoice(b.id!);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(ok ? 'Thermal receipt sent to printer!' : (billingProvider.errorMessage ?? 'Printing failed')),
-                              backgroundColor: ok ? AppColors.success : AppColors.error,
-                            ),
-                          );
-                        }
-                      },
+                      tooltip: 'Thermal Receipt Preview & Print',
+                      onPressed: () => ThermalReceiptDialog.showForSalesBill(context, b),
                     ),
                     IconButton(
                       icon: const Icon(Icons.email_outlined, color: AppColors.primary, size: 20),
@@ -666,18 +686,8 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.print_outlined, color: AppColors.secondary, size: 20),
-                      tooltip: 'Print Thermal Estimate',
-                      onPressed: () async {
-                        final ok = await jobProvider.printJob(j.id!);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(ok ? 'Thermal estimate sent to printer!' : (jobProvider.errorMessage ?? 'Printing failed')),
-                              backgroundColor: ok ? AppColors.success : AppColors.error,
-                            ),
-                          );
-                        }
-                      },
+                      tooltip: 'Thermal Estimate Preview & Print',
+                      onPressed: () => ThermalReceiptDialog.showForJob(context, j),
                     ),
                     IconButton(
                       icon: const Icon(Icons.email_outlined, color: AppColors.primary, size: 20),
