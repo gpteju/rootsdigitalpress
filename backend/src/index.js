@@ -38,6 +38,7 @@ const purchaseRouter = require('./routes/purchaseRoutes');
 const stockRouter = require('./routes/stockRoutes');
 const reportRouter = require('./routes/reportRoutes');
 const settingsRouter = require('./routes/settingsRoutes');
+const jobRouter = require('./routes/jobRoutes');
 
 // Mount Public Auth Router
 app.use('/api/auth', authRouter);
@@ -59,6 +60,7 @@ app.use('/api/purchases', authenticateToken, purchaseRouter);
 app.use('/api/stock', authenticateToken, stockRouter);
 app.use('/api/reports', authenticateToken, reportRouter);
 app.use('/api/settings', authenticateToken, settingsRouter);
+app.use('/api/jobs', authenticateToken, jobRouter);
 
 // Global 404 Route Handler
 app.use((req, res) => {

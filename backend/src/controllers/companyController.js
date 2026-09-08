@@ -34,7 +34,9 @@ async function saveCompany(req, res, next) {
       gstin,
       phone,
       email,
-      invoice_prefix
+      invoice_prefix,
+      estimate_prefix,
+      estimate_current_number
     } = req.body;
 
     if (!company_name || !address || !city || !state || !state_code || !phone || !email) {
@@ -50,18 +52,19 @@ async function saveCompany(req, res, next) {
       await query(
         `UPDATE companies SET 
           company_name = ?, address = ?, city = ?, state = ?, state_code = ?, 
-          gstin = ?, phone = ?, email = ?, invoice_prefix = ? 
+          gstin = ?, phone = ?, email = ?, invoice_prefix = ?, 
+          estimate_prefix = ?, estimate_current_number = ? 
         WHERE id = ?`,
-        [company_name, address, city, state, state_code, gstin || null, phone, email, invoice_prefix || 'INV-', companyId]
+        [company_name, address, city, state, state_code, gstin || null, phone, email, invoice_prefix || 'INV-', estimate_prefix || 'JOB-', parseInt(estimate_current_number || 0, 10), companyId]
       );
       const updated = await query('SELECT * FROM companies WHERE id = ?', [companyId]);
       return sendSuccess(res, updated[0], 'Company profile updated successfully');
     } else {
       const result = await query(
         `INSERT INTO companies 
-          (company_name, address, city, state, state_code, gstin, phone, email, invoice_prefix) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [company_name, address, city, state, state_code, gstin || null, phone, email, invoice_prefix || 'INV-']
+          (company_name, address, city, state, state_code, gstin, phone, email, invoice_prefix, estimate_prefix, estimate_current_number) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [company_name, address, city, state, state_code, gstin || null, phone, email, invoice_prefix || 'INV-', estimate_prefix || 'JOB-', parseInt(estimate_current_number || 0, 10)]
       );
       const created = await query('SELECT * FROM companies WHERE id = ?', [result.insertId]);
       return sendSuccess(res, created[0], 'Company profile created successfully', 201);

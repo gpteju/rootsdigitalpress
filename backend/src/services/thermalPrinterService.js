@@ -160,6 +160,14 @@ function generateThermalReceipt(billData) {
     out += `${sgstLabel}${sgstVal}\n`;
   }
 
+    const roundOffVal = parseFloat(bill.round_off || 0);
+  if (roundOffVal !== 0) {
+    const roundOffLabel = 'Round Off'.padEnd(20);
+    const sign = roundOffVal > 0 ? '+' : '';
+    const roundOffValStr = `Rs. ${sign}${roundOffVal.toFixed(2)}`.padStart(12);
+    out += `${roundOffLabel}${roundOffValStr}
+`;
+  }
   out += lineDivider;
 
   // 6. GRAND TOTAL

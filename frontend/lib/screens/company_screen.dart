@@ -24,6 +24,8 @@ class _CompanyScreenState extends State<CompanyScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _prefixController = TextEditingController();
+  final _estimatePrefixController = TextEditingController();
+  final _estimateCurrentNumberController = TextEditingController();
 
   @override
   void initState() {
@@ -47,6 +49,8 @@ class _CompanyScreenState extends State<CompanyScreen> {
     _phoneController.text = company.phone;
     _emailController.text = company.email;
     _prefixController.text = company.invoicePrefix;
+    _estimatePrefixController.text = company.estimatePrefix;
+    _estimateCurrentNumberController.text = company.estimateCurrentNumber.toString();
   }
 
   @override
@@ -60,6 +64,8 @@ class _CompanyScreenState extends State<CompanyScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     _prefixController.dispose();
+    _estimatePrefixController.dispose();
+    _estimateCurrentNumberController.dispose();
     super.dispose();
   }
 
@@ -76,6 +82,8 @@ class _CompanyScreenState extends State<CompanyScreen> {
       phone: _phoneController.text.trim(),
       email: _emailController.text.trim(),
       invoicePrefix: _prefixController.text.trim().isEmpty ? 'INV-' : _prefixController.text.trim(),
+      estimatePrefix: _estimatePrefixController.text.trim().isEmpty ? 'JOB-' : _estimatePrefixController.text.trim(),
+      estimateCurrentNumber: int.tryParse(_estimateCurrentNumberController.text.trim()) ?? 0,
     );
 
     final provider = context.read<CompanyProvider>();
@@ -186,6 +194,27 @@ class _CompanyScreenState extends State<CompanyScreen> {
                             controller: _prefixController,
                             decoration: const InputDecoration(labelText: 'Invoice Number Prefix *', hintText: 'e.g. INV-'),
                             validator: (v) => (v == null || v.trim().isEmpty) ? 'Invoice Prefix is required' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _estimatePrefixController,
+                            decoration: const InputDecoration(labelText: 'Estimate Number Prefix *', hintText: 'e.g. JOB-'),
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Estimate Prefix required' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _estimateCurrentNumberController,
+                            decoration: const InputDecoration(labelText: 'Starting Estimate Sequence Number', hintText: 'e.g. 0'),
+                            keyboardType: TextInputType.number,
                           ),
                         ),
                       ],

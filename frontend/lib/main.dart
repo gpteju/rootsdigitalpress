@@ -13,6 +13,7 @@ import 'providers/purchase_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/printer_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/job_provider.dart';
 
 import 'screens/dashboard_screen.dart';
 import 'screens/company_screen.dart';
@@ -38,6 +39,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CompanyProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
+        ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => SupplierProvider()),
         ChangeNotifierProvider(create: (_) => PaperProvider()),
         ChangeNotifierProvider(create: (_) => BillingProvider()),

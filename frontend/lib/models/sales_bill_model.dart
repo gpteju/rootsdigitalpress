@@ -72,6 +72,7 @@ class SalesBillModel {
   final double cgstAmount;
   final double sgstAmount;
   final double igstAmount;
+  final double roundOff;
   final double grandTotal;
   final double paidAmount;
   final double balanceAmount;
@@ -95,6 +96,7 @@ class SalesBillModel {
     this.cgstAmount = 0.0,
     this.sgstAmount = 0.0,
     this.igstAmount = 0.0,
+    this.roundOff = 0.0,
     required this.grandTotal,
     this.paidAmount = 0.0,
     required this.balanceAmount,
@@ -123,6 +125,7 @@ class SalesBillModel {
       cgstAmount: double.tryParse(json['cgst_amount']?.toString() ?? '0') ?? 0.0,
       sgstAmount: double.tryParse(json['sgst_amount']?.toString() ?? '0') ?? 0.0,
       igstAmount: double.tryParse(json['igst_amount']?.toString() ?? '0') ?? 0.0,
+      roundOff: double.tryParse(json['round_off']?.toString() ?? '0') ?? 0.0,
       grandTotal: double.tryParse(json['grand_total']?.toString() ?? '0') ?? 0.0,
       paidAmount: double.tryParse(json['paid_amount']?.toString() ?? '0') ?? 0.0,
       balanceAmount: double.tryParse(json['balance_amount']?.toString() ?? '0') ?? 0.0,
@@ -135,6 +138,7 @@ class SalesBillModel {
   Map<String, dynamic> toJson() => {
     'customer_id': customerId,
     'tax_id': taxId,
+    'round_off': roundOff,
     'bill_date': billDate,
     'notes': notes,
     'items': items.map((e) => e.toJson()).toList(),

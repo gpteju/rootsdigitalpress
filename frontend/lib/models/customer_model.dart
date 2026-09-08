@@ -13,6 +13,7 @@ class CustomerModel {
   final double creditLimit;
   final double advanceBalance;
   final int paymentTerms;
+  final bool isEstimate;
   final bool isActive;
 
   CustomerModel({
@@ -28,6 +29,7 @@ class CustomerModel {
     this.creditLimit = 0.0,
     this.advanceBalance = 0.0,
     this.paymentTerms = 30,
+    this.isEstimate = false,
     this.isActive = true,
   });
 
@@ -45,6 +47,7 @@ class CustomerModel {
       creditLimit: double.tryParse(json['credit_limit']?.toString() ?? '0') ?? 0.0,
       advanceBalance: double.tryParse(json['advance_balance']?.toString() ?? '0') ?? 0.0,
       paymentTerms: json['payment_terms'] ?? 30,
+      isEstimate: json['is_estimate'] == 1 || json['is_estimate'] == true,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
     );
   }
@@ -63,6 +66,7 @@ class CustomerModel {
       'credit_limit': creditLimit,
       'advance_balance': advanceBalance,
       'payment_terms': paymentTerms,
+      'is_estimate': isEstimate ? 1 : 0,
       'is_active': isActive ? 1 : 0,
     };
   }

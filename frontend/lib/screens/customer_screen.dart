@@ -36,11 +36,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
     final emailCtrl = TextEditingController(text: customer?.email ?? '');
     final creditLimitCtrl = TextEditingController(text: (customer?.creditLimit ?? 0.0).toString());
     final termsCtrl = TextEditingController(text: (customer?.paymentTerms ?? 30).toString());
+    bool isEstimateVal = customer?.isEstimate ?? false;
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogCtx) => AlertDialog(
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (stCtx, setDlgState) => AlertDialog(
         title: Text(customer == null ? 'Add New Customer' : 'Edit Customer'),
         content: SingleChildScrollView(
           child: Container(
@@ -50,6 +52,38 @@ class _CustomerScreenState extends State<CustomerScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isEstimateVal ? Colors.amber.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: isEstimateVal ? Colors.amber : Colors.grey.shade300),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Estimate / Job Customer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            const SizedBox(height: 2),
+                            Text(
+                              isEstimateVal ? 'ON (Estimate / Job Customer)' : 'OFF (Normal Customer)',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isEstimateVal ? Colors.amber.shade900 : AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                        Switch(
+                          value: isEstimateVal,
+                          activeColor: Colors.amber.shade800,
+                          onChanged: (val) {
+                            setDlgState(() => isEstimateVal = val);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: nameCtrl,
                     decoration: const InputDecoration(labelText: 'Customer / Business Name *'),
@@ -133,6 +167,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                       ),
                     ],
                   ),
+
                 ],
               ),
             ),
@@ -155,6 +190,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                 email: emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
                 creditLimit: double.tryParse(creditLimitCtrl.text.trim()) ?? 0.0,
                 paymentTerms: int.tryParse(termsCtrl.text.trim()) ?? 30,
+                isEstimate: isEstimateVal,
               );
 
               final provider = context.read<CustomerProvider>();
@@ -178,6 +214,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
             child: Text(customer == null ? 'Save Customer' : 'Update Customer'),
           ),
         ],
+      ),
       ),
     );
   }
@@ -218,7 +255,22 @@ class _CustomerScreenState extends State<CustomerScreen> {
               data: customers,
               emptyMessage: 'No customers added yet',
               columns: [
-                AppTableColumn(title: 'Customer Name', builder: (c) => Text(c.customerName, style: const TextStyle(fontWeight: FontWeight.bold))),
+                AppTableColumn(
+                  title: 'Customer Name',
+                  builder: (c) => Row(
+                    children: [
+                      Text(c.customerName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      if (c.isEstimate) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(4), border: Border.all(color: Colors.amber.shade700)),
+                          child: const Text('ESTIMATE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
                 AppTableColumn(title: 'City / State', builder: (c) => Text('${c.city ?? "-"}, ${c.state} (${c.stateCode})')),
                 AppTableColumn(title: 'GSTIN', builder: (c) => Text(c.gstin ?? '-')),
                 AppTableColumn(title: 'Phone / Email', builder: (c) => Text('${c.phone ?? "-"}\n${c.email ?? "-"}', style: const TextStyle(fontSize: 12))),

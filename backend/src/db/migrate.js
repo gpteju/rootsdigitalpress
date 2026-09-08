@@ -369,6 +369,66 @@ async function runMigrations() {
       `);
     }
 
+    
+    // 18. Alter Customer Table for Dual Customer Type (is_estimate)
+    try {
+      await conn.query(`ALTER TABLE customers ADD COLUMN is_estimate TINYINT(1) NOT NULL DEFAULT 0`);
+    } catch (e) {
+      // Column may already exist
+    }
+
+    // 19. Alter Companies Table for Estimate Numbering Configuration
+    try {
+      await conn.query(`ALTER TABLE companies ADD COLUMN estimate_prefix VARCHAR(10) NOT NULL DEFAULT 'JOB-'`);
+    } catch (e) {}
+    try {
+      await conn.query(`ALTER TABLE companies ADD COLUMN estimate_current_number INT NOT NULL DEFAULT 0`);
+    } catch (e) {}
+
+    // 20. Job Details (Estimate Customer Bills)
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS job_details (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        job_number VARCHAR(50) NOT NULL UNIQUE,
+        job_date DATE NOT NULL,
+        customer_id INT NOT NULL,
+        subtotal DECIMAL(15,2) NOT NULL,
+        grand_total DECIMAL(15,2) NOT NULL,
+        notes TEXT DEFAULT NULL,
+        created_by INT DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS job_detail_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        job_detail_id INT NOT NULL,
+        paper_id INT NOT NULL,
+        printout_type_id INT NOT NULL,
+        paper_name_snapshot VARCHAR(150) NOT NULL,
+        printout_type_name_snapshot VARCHAR(100) NOT NULL,
+        quantity DECIMAL(15,2) NOT NULL,
+        first_copy_rate DECIMAL(15,2) NOT NULL,
+        additional_copy_rate DECIMAL(15,2) NOT NULL,
+        calculated_amount DECIMAL(15,2) NOT NULL,
+        total_amount DECIMAL(15,2) NOT NULL,
+        FOREIGN KEY (job_detail_id) REFERENCES job_details(id) ON DELETE CASCADE,
+        FOREIGN KEY (paper_id) REFERENCES papers(id),
+        FOREIGN KEY (printout_type_id) REFERENCES printout_types(id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    
+    // 21. Alter sales_bills Table for round_off column
+    try {
+      await conn.query(`ALTER TABLE sales_bills ADD COLUMN round_off DECIMAL(15,2) NOT NULL DEFAULT 0.00 AFTER igst_amount`);
+    } catch (e) {
+      // Column may already exist
+    }
+
     console.log('[DB-MIGRATE] Database migration completed successfully.');
   } catch (err) {
     console.error('[DB-MIGRATE] Migration failed:', err.message);

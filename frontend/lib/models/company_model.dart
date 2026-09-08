@@ -11,6 +11,8 @@ class CompanyModel {
   final String phone;
   final String email;
   final String invoicePrefix;
+  final String estimatePrefix;
+  final int estimateCurrentNumber;
 
   CompanyModel({
     this.id,
@@ -23,6 +25,8 @@ class CompanyModel {
     required this.phone,
     required this.email,
     this.invoicePrefix = 'INV-',
+    this.estimatePrefix = 'JOB-',
+    this.estimateCurrentNumber = 0,
   });
 
   factory CompanyModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +41,8 @@ class CompanyModel {
       phone: json['phone'] ?? '',
       email: json['email'] ?? '',
       invoicePrefix: json['invoice_prefix'] ?? 'INV-',
+      estimatePrefix: json['estimate_prefix'] ?? 'JOB-',
+      estimateCurrentNumber: json['estimate_current_number'] ?? 0,
     );
   }
 
@@ -52,6 +58,8 @@ class CompanyModel {
       'phone': phone,
       'email': email,
       'invoice_prefix': invoicePrefix,
+      'estimate_prefix': estimatePrefix,
+      'estimate_current_number': estimateCurrentNumber,
     };
   }
 }

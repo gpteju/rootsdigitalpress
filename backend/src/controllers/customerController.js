@@ -71,7 +71,8 @@ async function createCustomer(req, res, next) {
       phone,
       email,
       credit_limit,
-      payment_terms
+      payment_terms,
+      is_estimate
     } = req.body;
 
     if (!customer_name || !state || !state_code) {
@@ -82,8 +83,8 @@ async function createCustomer(req, res, next) {
 
     const result = await query(
       `INSERT INTO customers 
-        (customer_name, address, city, state, state_code, gstin, phone, email, credit_limit, payment_terms, is_active) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        (customer_name, address, city, state, state_code, gstin, phone, email, credit_limit, payment_terms, is_estimate, is_active) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
       [
         customer_name,
         address || null,
@@ -94,7 +95,8 @@ async function createCustomer(req, res, next) {
         phone || null,
         email || null,
         credit_limit || 0.00,
-        payment_terms || 30
+        payment_terms || 30,
+        is_estimate ? 1 : 0
       ]
     );
 
@@ -122,7 +124,8 @@ async function updateCustomer(req, res, next) {
       email,
       credit_limit,
       payment_terms,
-      is_active
+      is_active,
+      is_estimate
     } = req.body;
 
     const existing = await query('SELECT id FROM customers WHERE id = ?', [id]);
@@ -133,7 +136,7 @@ async function updateCustomer(req, res, next) {
     await query(
       `UPDATE customers SET 
         customer_name = ?, address = ?, city = ?, state = ?, state_code = ?, 
-        gstin = ?, phone = ?, email = ?, credit_limit = ?, payment_terms = ?, is_active = ? 
+        gstin = ?, phone = ?, email = ?, credit_limit = ?, payment_terms = ?, is_estimate = ?, is_active = ? 
        WHERE id = ?`,
       [
         customer_name,
@@ -146,6 +149,7 @@ async function updateCustomer(req, res, next) {
         email || null,
         credit_limit || 0.00,
         payment_terms || 30,
+        is_estimate ? 1 : 0,
         is_active !== undefined ? is_active : 1,
         id
       ]
