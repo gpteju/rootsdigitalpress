@@ -35,6 +35,7 @@ class _RateScreenState extends State<RateScreen> {
 
     final firstRateCtrl = TextEditingController(text: (rate?.firstCopyRate ?? 5.0).toString());
     final addRateCtrl = TextEditingController(text: (rate?.additionalCopyRate ?? 2.0).toString());
+    final clickRateCtrl = TextEditingController(text: (rate?.clickRate ?? 0.0).toString());
 
     if (selectedPaperId == null || selectedPrintoutTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,6 +97,15 @@ class _RateScreenState extends State<RateScreen> {
                             validator: (v) => (v == null || v.trim().isEmpty) ? 'Rate is required' : null,
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: clickRateCtrl,
+                            decoration: const InputDecoration(labelText: 'Click Rate (₹) *'),
+                            keyboardType: TextInputType.number,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Rate is required' : null,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -119,11 +129,12 @@ class _RateScreenState extends State<RateScreen> {
                   printoutTypeId: selectedPrintoutTypeId!,
                   firstCopyRate: double.tryParse(firstRateCtrl.text.trim()) ?? 0.0,
                   additionalCopyRate: double.tryParse(addRateCtrl.text.trim()) ?? 0.0,
+                  clickRate: double.tryParse(clickRateCtrl.text.trim()) ?? 0.0,
                 );
 
                 bool success = rate == null
                     ? await provider.createRate(rateModel)
-                    : await provider.createRate(rateModel); // Provider handles update/create
+                    : await provider.updateRate(rate.id!, rateModel); // Provider handles update/create
 
                 if (mounted) {
                   if (success) {
@@ -186,6 +197,7 @@ class _RateScreenState extends State<RateScreen> {
                 AppTableColumn(title: 'Printout Type', builder: (r) => Text(r.printoutTypeName ?? 'Printout Type')),
                 AppTableColumn(title: 'First Copy Rate', builder: (r) => Text(Formatters.formatCurrency(r.firstCopyRate), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))),
                 AppTableColumn(title: 'Additional Copy Rate', builder: (r) => Text(Formatters.formatCurrency(r.additionalCopyRate), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                AppTableColumn(title: 'Click Rate', builder: (r) => Text(Formatters.formatCurrency(r.clickRate), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.accent))),
                 AppTableColumn(
                   title: 'Actions',
                   builder: (r) => IconButton(

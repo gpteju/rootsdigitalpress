@@ -207,6 +207,9 @@ async function runMigrations() {
         printout_type_id INT NOT NULL,
         first_copy_rate DECIMAL(15,2) NOT NULL,
         additional_copy_rate DECIMAL(15,2) NOT NULL,
+        rate_based_on VARCHAR(20) NOT NULL DEFAULT 'RATES',
+        click_rate DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+        click_rate DECIMAL(15,2) NOT NULL DEFAULT 0.00,
         is_active TINYINT(1) NOT NULL DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -429,6 +432,21 @@ async function runMigrations() {
       // Column may already exist
     }
 
+    
+    // 22. Alter rates Table for click_rate column
+    try {
+      await conn.query(`ALTER TABLE rates ADD COLUMN click_rate DECIMAL(15,2) NOT NULL DEFAULT 0.00 AFTER additional_copy_rate`);
+    } catch (e) {}
+    
+    // 23. Alter sales_bill_items Table for rate_based_on column
+    try {
+      await conn.query(`ALTER TABLE sales_bill_items ADD COLUMN rate_based_on VARCHAR(20) NOT NULL DEFAULT 'RATES' AFTER additional_copy_rate`);
+    } catch (e) {}
+    
+    // 24. Alter sales_bill_items Table for click_rate column
+    try {
+      await conn.query(`ALTER TABLE sales_bill_items ADD COLUMN click_rate DECIMAL(15,2) NOT NULL DEFAULT 0.00 AFTER rate_based_on`);
+    } catch (e) {}
     console.log('[DB-MIGRATE] Database migration completed successfully.');
   } catch (err) {
     console.error('[DB-MIGRATE] Migration failed:', err.message);

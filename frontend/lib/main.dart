@@ -1,20 +1,21 @@
-// CHANGE-2026-09-07: Main Entry Point & Multi-Platform Navigation Shell for Printout Billing Software.
+// CHANGE-2026-09-08: Reorganized Left Side Menu navigation into Master, Transaction, Stock Ledger, Reports & Aging, and Printer Settings.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'providers/auth_provider.dart';
 import 'providers/company_provider.dart';
 import 'providers/customer_provider.dart';
 import 'providers/supplier_provider.dart';
 import 'providers/paper_provider.dart';
 import 'providers/billing_provider.dart';
 import 'providers/payment_provider.dart';
+import 'providers/job_provider.dart';
 import 'providers/purchase_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/printer_provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/job_provider.dart';
 
+import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/company_screen.dart';
 import 'screens/customer_screen.dart';
@@ -29,7 +30,6 @@ import 'screens/supplier_purchase_screen.dart';
 import 'screens/stock_ledger_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/printer_settings_screen.dart';
-import 'screens/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,11 +39,11 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CompanyProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
-        ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => SupplierProvider()),
         ChangeNotifierProvider(create: (_) => PaperProvider()),
         ChangeNotifierProvider(create: (_) => BillingProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
+        ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => PurchaseProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
         ChangeNotifierProvider(create: (_) => PrinterProvider()),
@@ -79,50 +79,221 @@ class MainNavigationShell extends StatefulWidget {
 }
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
-  int _selectedIndex = 0;
+  String _selectedKey = 'dashboard';
 
   void _navigateToTab(int index) {
-    setState(() => _selectedIndex = index);
+    final indexMap = {
+      0: 'dashboard',
+      1: 'master_company',
+      2: 'master_customer',
+      3: 'master_supplier',
+      4: 'master_paper',
+      5: 'master_printout_type',
+      6: 'master_tax',
+      7: 'master_rate',
+      8: 'trans_sales',
+      9: 'trans_payments',
+      10: 'trans_purchases',
+      11: 'stock',
+      12: 'reports_daily_sales',
+      13: 'printer',
+    };
+    if (indexMap.containsKey(index)) {
+      setState(() => _selectedKey = indexMap[index]!);
+    }
+  }
+
+  Widget _buildScreen() {
+    switch (_selectedKey) {
+      case 'dashboard':
+        return DashboardScreen(onNavigateToTab: _navigateToTab);
+
+      // Master Group
+      case 'master_company':
+        return const CompanyScreen();
+      case 'master_customer':
+        return const CustomerScreen();
+      case 'master_supplier':
+        return const SupplierScreen();
+      case 'master_paper_type':
+        return const PaperMastersScreen(initialTabIndex: 1);
+      case 'master_paper_gsm':
+        return const PaperMastersScreen(initialTabIndex: 2);
+      case 'master_paper_size':
+        return const PaperMastersScreen(initialTabIndex: 3);
+      case 'master_paper':
+        return const PaperMastersScreen(initialTabIndex: 0);
+      case 'master_printout_type':
+        return const PrintoutTypeScreen();
+      case 'master_tax':
+        return const TaxScreen();
+      case 'master_rate':
+        return const RateScreen();
+
+      // Transaction Group
+      case 'trans_sales':
+        return const SalesBillScreen();
+      case 'trans_payments':
+        return const CustomerPaymentScreen();
+      case 'trans_purchases':
+        return const SupplierPurchaseScreen();
+
+      // Stock Ledger
+      case 'stock':
+        return const StockLedgerScreen();
+
+      // Reports & Aging Group
+      case 'reports_daily_sales':
+        return const ReportsScreen(initialTabIndex: 0);
+      case 'reports_customer_wise':
+        return const ReportsScreen(initialTabIndex: 1);
+      case 'reports_customer_aging':
+        return const ReportsScreen(initialTabIndex: 2);
+      case 'reports_customer_pending':
+        return const ReportsScreen(initialTabIndex: 3);
+      case 'reports_supplier_purchases':
+        return const ReportsScreen(initialTabIndex: 4);
+      case 'reports_stock':
+        return const ReportsScreen(initialTabIndex: 5);
+      case 'reports_customer_payment':
+        return const ReportsScreen(initialTabIndex: 6);
+
+      // Printer Settings
+      case 'printer':
+        return const PrinterSettingsScreen();
+
+      default:
+        return DashboardScreen(onNavigateToTab: _navigateToTab);
+    }
+  }
+
+  List<Map<String, dynamic>> _getMenuTree() {
+    return [
+      {
+        'key': 'dashboard',
+        'title': 'Dashboard Overview',
+        'icon': Icons.dashboard_outlined,
+      },
+      {
+        'title': 'Master',
+        'icon': Icons.folder_outlined,
+        'children': [
+          {'key': 'master_company', 'title': 'Company Master', 'icon': Icons.business_outlined},
+          {'key': 'master_customer', 'title': 'Customer Master', 'icon': Icons.people_outline},
+          {'key': 'master_supplier', 'title': 'Supplier Master', 'icon': Icons.local_shipping_outlined},
+          {'key': 'master_paper_type', 'title': 'Paper Type', 'icon': Icons.style_outlined},
+          {'key': 'master_paper_gsm', 'title': 'Paper GSM', 'icon': Icons.line_weight_outlined},
+          {'key': 'master_paper_size', 'title': 'Paper Size', 'icon': Icons.aspect_ratio_outlined},
+          {'key': 'master_paper', 'title': 'Paper', 'icon': Icons.description_outlined},
+          {'key': 'master_printout_type', 'title': 'Printout Type', 'icon': Icons.print_outlined},
+          {'key': 'master_tax', 'title': 'Tax Master', 'icon': Icons.account_balance_outlined},
+          {'key': 'master_rate', 'title': 'Rate Master', 'icon': Icons.sell_outlined},
+        ]
+      },
+      {
+        'title': 'Transaction',
+        'icon': Icons.point_of_sale_outlined,
+        'children': [
+          {'key': 'trans_sales', 'title': 'Sales Billing', 'icon': Icons.receipt_long_outlined},
+          {'key': 'trans_payments', 'title': 'Customer Payments', 'icon': Icons.payment_outlined},
+          {'key': 'trans_purchases', 'title': 'Supplier Purchase', 'icon': Icons.add_shopping_cart_outlined},
+        ]
+      },
+      {
+        'key': 'stock',
+        'title': 'Stock Ledger',
+        'icon': Icons.inventory_2_outlined,
+      },
+      {
+        'title': 'Reports & Aging',
+        'icon': Icons.assessment_outlined,
+        'children': [
+          {'key': 'reports_daily_sales', 'title': 'Daily Sales', 'icon': Icons.today_outlined},
+          {'key': 'reports_customer_wise', 'title': 'Customer Wise Report', 'icon': Icons.analytics_outlined},
+          {'key': 'reports_customer_aging', 'title': 'Customer Aging', 'icon': Icons.history_outlined},
+          {'key': 'reports_customer_pending', 'title': 'Customer Pending', 'icon': Icons.pending_actions_outlined},
+          {'key': 'reports_supplier_purchases', 'title': 'Supplier Wise Purchase', 'icon': Icons.shopping_bag_outlined},
+          {'key': 'reports_stock', 'title': 'Stock Report', 'icon': Icons.warehouse_outlined},
+          {'key': 'reports_customer_payment', 'title': 'Customer Payment Report', 'icon': Icons.receipt_long_outlined},
+        ]
+      },
+      {
+        'key': 'printer',
+        'title': 'Printer Settings',
+        'icon': Icons.settings_applications_outlined,
+      },
+    ];
+  }
+
+  Widget _buildMenuItem(Map<String, dynamic> item, {bool isDrawer = false}) {
+    final bool isSelected = _selectedKey == item['key'];
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        dense: true,
+        leading: Icon(item['icon'], color: isSelected ? AppColors.primary : AppColors.textSecondary, size: 20),
+        title: Text(
+          item['title'],
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? AppColors.primary : AppColors.textPrimary,
+          ),
+        ),
+        onTap: () {
+          if (isDrawer) Navigator.pop(context);
+          setState(() => _selectedKey = item['key']);
+        },
+      ),
+    );
+  }
+
+  Widget _buildMenuGroup(Map<String, dynamic> group, {bool isDrawer = false}) {
+    final List<Map<String, dynamic>> children = List<Map<String, dynamic>>.from(group['children']);
+    final bool isAnyChildSelected = children.any((c) => c['key'] == _selectedKey);
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        key: PageStorageKey<String>(group['title']),
+        initiallyExpanded: isAnyChildSelected,
+        leading: Icon(group['icon'], color: isAnyChildSelected ? AppColors.primary : AppColors.textSecondary, size: 20),
+        title: Text(
+          group['title'],
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isAnyChildSelected ? FontWeight.bold : FontWeight.w600,
+            color: isAnyChildSelected ? AppColors.primary : AppColors.textPrimary,
+          ),
+        ),
+        childrenPadding: const EdgeInsets.only(left: 12),
+        children: children.map((c) => _buildMenuItem(c, isDrawer: isDrawer)).toList(),
+      ),
+    );
+  }
+
+  Widget _buildMenuList({bool isDrawer = false}) {
+    final menuTree = _getMenuTree();
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      children: menuTree.map((item) {
+        if (item.containsKey('children')) {
+          return _buildMenuGroup(item, isDrawer: isDrawer);
+        } else {
+          return _buildMenuItem(item, isDrawer: isDrawer);
+        }
+      }).toList(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
-
-    final List<Widget> screens = [
-      DashboardScreen(onNavigateToTab: _navigateToTab),
-      const CompanyScreen(),
-      const CustomerScreen(),
-      const SupplierScreen(),
-      const PaperMastersScreen(),
-      const PrintoutTypeScreen(),
-      const TaxScreen(),
-      const RateScreen(),
-      const SalesBillScreen(),
-      const CustomerPaymentScreen(),
-      const SupplierPurchaseScreen(),
-      const StockLedgerScreen(),
-      const ReportsScreen(),
-      const PrinterSettingsScreen(),
-    ];
-
-    final List<Map<String, dynamic>> menuItems = [
-      {'title': 'Dashboard Overview', 'icon': Icons.dashboard_outlined},
-      {'title': 'Company Master', 'icon': Icons.business_outlined},
-      {'title': 'Customer Master', 'icon': Icons.people_outline},
-      {'title': 'Supplier Master', 'icon': Icons.local_shipping_outlined},
-      {'title': 'Paper Masters', 'icon': Icons.description_outlined},
-      {'title': 'Printout Type Master', 'icon': Icons.print_outlined},
-      {'title': 'Tax Master', 'icon': Icons.account_balance_outlined},
-      {'title': 'Rate Master', 'icon': Icons.sell_outlined},
-      {'title': 'Sales Billing', 'icon': Icons.receipt_long_outlined},
-      {'title': 'Customer Payments', 'icon': Icons.payment_outlined},
-      {'title': 'Supplier Purchases', 'icon': Icons.add_shopping_cart_outlined},
-      {'title': 'Stock Ledger', 'icon': Icons.inventory_2_outlined},
-      {'title': 'Reports & Aging', 'icon': Icons.assessment_outlined},
-      {'title': 'Printer Settings', 'icon': Icons.settings_applications_outlined},
-    ];
 
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 800;
@@ -180,45 +351,17 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           // Permanent Side Drawer for Desktop / Web
           if (isDesktop)
             Container(
-              width: 240,
+              width: 250,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(right: BorderSide(color: AppColors.border, width: 1)),
               ),
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                itemCount: menuItems.length,
-                itemBuilder: (context, idx) {
-                  final item = menuItems[idx];
-                  final bool isSelected = _selectedIndex == idx;
-
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ListTile(
-                      dense: true,
-                      leading: Icon(item['icon'], color: isSelected ? AppColors.primary : AppColors.textSecondary, size: 20),
-                      title: Text(
-                        item['title'],
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                        ),
-                      ),
-                      onTap: () => setState(() => _selectedIndex = idx),
-                    ),
-                  );
-                },
-              ),
+              child: _buildMenuList(isDrawer: false),
             ),
 
           // Main View Content Area
           Expanded(
-            child: screens[_selectedIndex],
+            child: _buildScreen(),
           ),
         ],
       ),
@@ -226,36 +369,24 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       drawer: isDesktop
           ? null
           : Drawer(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: menuItems.length + 1,
-                itemBuilder: (context, idx) {
-                  if (idx == 0) {
-                    return DrawerHeader(
-                      decoration: const BoxDecoration(color: AppColors.primary),
-                      child: const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.print, color: Colors.white, size: 40),
-                          SizedBox(height: 10),
-                          Text('Printout Billing System', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    );
-                  }
-                  final item = menuItems[idx - 1];
-                  final bool isSelected = _selectedIndex == idx - 1;
-
-                  return ListTile(
-                    leading: Icon(item['icon'], color: isSelected ? AppColors.primary : AppColors.textSecondary),
-                    title: Text(item['title'], style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                    onTap: () {
-                      Navigator.pop(context);
-                      setState(() => _selectedIndex = idx - 1);
-                    },
-                  );
-                },
+              child: Column(
+                children: [
+                  DrawerHeader(
+                    decoration: const BoxDecoration(color: AppColors.primary),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.print, color: Colors.white, size: 40),
+                        SizedBox(height: 10),
+                        Text('Printout Billing System', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildMenuList(isDrawer: true),
+                  ),
+                ],
               ),
             ),
     );

@@ -45,7 +45,7 @@ async function lookupRate(req, res, next) {
 
 async function createRate(req, res, next) {
   try {
-    const { paper_id, printout_type_id, first_copy_rate, additional_copy_rate } = req.body;
+    const { paper_id, printout_type_id, first_copy_rate, additional_copy_rate, click_rate } = req.body;
     if (!paper_id || !printout_type_id || first_copy_rate === undefined || additional_copy_rate === undefined) {
       return sendError(res, 'paper_id, printout_type_id, first_copy_rate, and additional_copy_rate are required');
     }
@@ -56,8 +56,8 @@ async function createRate(req, res, next) {
     }
 
     const result = await query(
-      'INSERT INTO rates (paper_id, printout_type_id, first_copy_rate, additional_copy_rate, is_active) VALUES (?, ?, ?, ?, 1)',
-      [paper_id, printout_type_id, first_copy_rate, additional_copy_rate]
+      'INSERT INTO rates (paper_id, printout_type_id, first_copy_rate, additional_copy_rate, click_rate, is_active) VALUES (?, ?, ?, ?, ?, 1)',
+      [paper_id, printout_type_id, first_copy_rate, additional_copy_rate, click_rate !== undefined ? click_rate : 0.00]
     );
 
     const created = await query('SELECT * FROM rates WHERE id = ?', [result.insertId]);
@@ -68,14 +68,14 @@ async function createRate(req, res, next) {
 async function updateRate(req, res, next) {
   try {
     const { id } = req.params;
-    const { first_copy_rate, additional_copy_rate, is_active } = req.body;
+    const { first_copy_rate, additional_copy_rate, click_rate, is_active } = req.body;
 
     const existing = await query('SELECT id FROM rates WHERE id = ?', [id]);
     if (existing.length === 0) return sendError(res, 'Rate record not found', [], 404);
 
     await query(
-      'UPDATE rates SET first_copy_rate = ?, additional_copy_rate = ?, is_active = ? WHERE id = ?',
-      [first_copy_rate, additional_copy_rate, is_active !== undefined ? is_active : 1, id]
+      'UPDATE rates SET first_copy_rate = ?, additional_copy_rate = ?, click_rate = ?, is_active = ? WHERE id = ?',
+      [first_copy_rate, additional_copy_rate, click_rate !== undefined ? click_rate : 0.00, is_active !== undefined ? is_active : 1, id]
     );
 
     const updated = await query('SELECT * FROM rates WHERE id = ?', [id]);

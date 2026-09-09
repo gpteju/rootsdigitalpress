@@ -52,12 +52,16 @@ function calculateItemAmount(quantity, firstCopyRate, additionalCopyRate) {
  * @param {number|string} totalSubtotal 
  * @param {Object} taxMaster - { taxPercentage, subTaxes: [{ subTaxName, ratePercentage, taxType }] }
  */
-function calculateInvoiceTax(companyState, customerState, totalSubtotal, taxMaster) {
+function calculateInvoiceTax(companyState, customerState, totalSubtotal, taxMaster, companyStateCode, customerStateCode) {
   const subtotal = new Decimal(totalSubtotal || 0);
+  const compCode = (companyStateCode || '').trim().toUpperCase();
+  const custCode = (customerStateCode || '').trim().toUpperCase();
   const compState = (companyState || '').trim().toUpperCase();
   const custState = (customerState || '').trim().toUpperCase();
 
-  const isInterstate = compState !== custState;
+  const isInterstate = (compCode && custCode)
+    ? compCode !== custCode
+    : compState !== custState;
 
   let cgstAmount = new Decimal(0);
   let sgstAmount = new Decimal(0);
@@ -87,8 +91,6 @@ function calculateInvoiceTax(companyState, customerState, totalSubtotal, taxMast
         cgstAmount = cgstAmount.plus(taxVal);
       } else if (st.sub_tax_name.toUpperCase().includes('SGST')) {
         sgstAmount = sgstAmount.plus(taxVal);
-      } else {
-        cgstAmount = cgstAmount.plus(taxVal);
       }
     }
     // Fallback if sub_taxes is empty but total tax_percentage is provided

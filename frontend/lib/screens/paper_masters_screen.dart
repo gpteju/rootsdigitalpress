@@ -8,7 +8,8 @@ import '../providers/paper_provider.dart';
 import '../widgets/app_data_table.dart';
 
 class PaperMastersScreen extends StatefulWidget {
-  const PaperMastersScreen({super.key});
+  final int initialTabIndex;
+  const PaperMastersScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<PaperMastersScreen> createState() => _PaperMastersScreenState();
@@ -20,13 +21,21 @@ class _PaperMastersScreenState extends State<PaperMastersScreen> with SingleTick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: widget.initialTabIndex);
     _tabController.addListener(() {
       setState(() {});
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PaperProvider>().fetchAllMasters();
     });
+  }
+
+  @override
+  void didUpdateWidget(PaperMastersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTabIndex != widget.initialTabIndex) {
+      _tabController.animateTo(widget.initialTabIndex);
+    }
   }
 
   @override

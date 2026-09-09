@@ -165,4 +165,10 @@ class PaperProvider extends ChangeNotifier {
     if (res.success) { await fetchRates(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
+
+  Future<bool> updateRate(int id, RateModel rate) async {
+    final res = await _api.put<RateModel>("${ApiEndpoints.rates}/$id", rate.toJson(), parser: (j) => RateModel.fromJson(j));
+    if (res.success) { await fetchRates(); return true; }
+    _errorMessage = res.message; notifyListeners(); return false;
+  }
 }

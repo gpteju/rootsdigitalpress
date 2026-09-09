@@ -57,7 +57,9 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
         'paper': paperProvider.papers.first,
         'printout_type': paperProvider.printoutTypes.first,
         'quantity': 1.0,
+        'rate_based_on': 'Rates',
         'first_copy_rate': 0.0,
+        'click_rate': 0.0,
         'additional_copy_rate': 0.0,
         'calculated_amount': 0.0,
         'loading_rate': false,
@@ -73,6 +75,7 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
     final paper = item['paper'];
     final printout = item['printout_type'];
     final double qty = item['quantity'] ?? 1.0;
+    final String rateBasedOn = item['rate_based_on'] ?? 'Rates';
 
     setState(() => item['loading_rate'] = true);
 
@@ -82,17 +85,23 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
     if (rateModel != null) {
       final double firstRate = rateModel.firstCopyRate;
       final double addRate = rateModel.additionalCopyRate;
+      final double clickRateVal = rateModel.clickRate;
 
       double lineAmount = 0.0;
-      if (qty <= 1) {
-        lineAmount = firstRate * qty;
+      if (rateBasedOn == 'Click Rate') {
+        lineAmount = double.parse((clickRateVal * qty).toStringAsFixed(2));
       } else {
-        lineAmount = firstRate + ((qty - 1) * addRate);
+        if (qty <= 1) {
+          lineAmount = firstRate * qty;
+        } else {
+          lineAmount = firstRate + ((qty - 1) * addRate);
+        }
       }
 
       setState(() {
         item['first_copy_rate'] = firstRate;
         item['additional_copy_rate'] = addRate;
+        item['click_rate'] = clickRateVal;
         item['calculated_amount'] = lineAmount;
         item['loading_rate'] = false;
       });
@@ -100,6 +109,7 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
       setState(() {
         item['first_copy_rate'] = 0.0;
         item['additional_copy_rate'] = 0.0;
+        item['click_rate'] = 0.0;
         item['calculated_amount'] = 0.0;
         item['loading_rate'] = false;
       });
@@ -110,6 +120,17 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
     setState(() {
       _lineItems.removeAt(index);
     });
+  }
+
+  bool get _isInterstate {
+    final company = context.watch<CompanyProvider>().company;
+    if (company == null || _selectedCustomer == null) return false;
+    final compCode = company.stateCode.trim().toUpperCase();
+    final custCode = _selectedCustomer!.stateCode.trim().toUpperCase();
+    if (compCode.isNotEmpty && custCode.isNotEmpty) {
+      return compCode != custCode;
+    }
+    return company.state.trim().toUpperCase() != _selectedCustomer!.state.trim().toUpperCase();
   }
 
   bool get _isEstimateCustomer {
@@ -233,6 +254,8 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
             quantity: i['quantity'],
             firstCopyRate: i['first_copy_rate'],
             additionalCopyRate: i['additional_copy_rate'],
+            rateBasedOn: i['rate_based_on'] ?? 'Rates',
+            clickRate: i['click_rate'] ?? 0.0,
             calculatedAmount: i['calculated_amount'],
           );
         }).toList(),
@@ -513,6 +536,26 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
                               ),
                               const SizedBox(width: 10),
 
+                              // Rate Based On Dropdown
+                              Expanded(
+                                flex: 2,
+                                child: DropdownButtonFormField<String>(
+                                  value: item['rate_based_on'] ?? 'Rates',
+                                  decoration: const InputDecoration(labelText: 'Rate Based On'),
+                                  items: const [
+                                    DropdownMenuItem(value: 'Rates', child: Text('Rates')),
+                                    DropdownMenuItem(value: 'Click Rate', child: Text('Click Rate')),
+                                  ],
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(() => item['rate_based_on'] = val);
+                                      _recalculateItemRate(idx);
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+
                               // Rates & Amount Preview
                               Expanded(
                                 flex: 3,
@@ -523,7 +566,10 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
                                     if (item['loading_rate'] == true)
                                       const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
                                     else ...[
-                                      Text('1st Rate: ₹${item['first_copy_rate']} | Add: ₹${item['additional_copy_rate']}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                      if (item['rate_based_on'] == 'Click Rate')
+                                        Text('Click Rate: ₹${item['click_rate'] ?? 0.0}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))
+                                      else
+                                        Text('1st Rate: ₹${item['first_copy_rate']} | Add: ₹${item['additional_copy_rate']}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                                       const SizedBox(height: 2),
                                       Text(Formatters.formatCurrency(item['calculated_amount']), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primary)),
                                     ],
@@ -564,8 +610,14 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
                           children: [
                             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal:'), Text(Formatters.formatCurrency(_subtotal), style: const TextStyle(fontWeight: FontWeight.bold))]),
                             const SizedBox(height: 6),
-                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Tax (${_taxPercentage}%):'), Text(Formatters.formatCurrency(_taxAmount))]),
                             if (!_isEstimateCustomer) ...[
+                              if (!_isInterstate) ...[
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('CGST (${(_taxPercentage / 2).toStringAsFixed(1).replaceAll(".0", "")}%):'), Text(Formatters.formatCurrency(_taxAmount / 2))]),
+                                const SizedBox(height: 6),
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('SGST (${(_taxPercentage / 2).toStringAsFixed(1).replaceAll(".0", "")}%):'), Text(Formatters.formatCurrency(_taxAmount / 2))]),
+                              ] else ...[
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('IGST (${_taxPercentage.toStringAsFixed(1).replaceAll(".0", "")}%):'), Text(Formatters.formatCurrency(_taxAmount))]),
+                              ],
                               const SizedBox(height: 6),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

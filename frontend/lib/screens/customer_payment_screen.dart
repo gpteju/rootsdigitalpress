@@ -1,4 +1,5 @@
 // CHANGE-2026-09-07: Created Customer Payment Screen with FIFO & Manual Allocation and Advance Credit support.
+// CHANGE-2026-09-09: Display Advance Credit and incorporate customer advance balance into payment processing.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -55,8 +56,18 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     }
 
     final double amt = double.tryParse(_amountController.text.trim()) ?? 0.0;
-    if (amt <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid payment amount > 0'), backgroundColor: AppColors.error));
+    if (amt < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment amount cannot be negative'), backgroundColor: AppColors.error));
+      return;
+    }
+
+    final double existingAdvance = _selectedCustomer!.advanceBalance;
+    final double totalAvailable = amt + existingAdvance;
+
+    if (totalAvailable <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid payment amount > 0 or select a customer with available Advance Credit'), backgroundColor: AppColors.error),
+      );
       return;
     }
 
@@ -88,8 +99,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         _refController.clear();
         _notesController.clear();
         _manualAllocControllers.clear();
-        context.read<CustomerProvider>().fetchCustomers(); // Refresh customer advance balance
+        await context.read<CustomerProvider>().fetchCustomers(); // Refresh customer advance balance
         if (_selectedCustomer != null) {
+          // Refresh _selectedCustomer reference from updated customer list
+          final updatedCustomers = context.read<CustomerProvider>().customers;
+          final updated = updatedCustomers.firstWhere((c) => c.id == _selectedCustomer!.id, orElse: () => _selectedCustomer!);
+          setState(() {
+            _selectedCustomer = updated;
+          });
           context.read<PaymentProvider>().fetchCustomerPendingBills(_selectedCustomer!.id!);
         }
 
@@ -118,19 +135,16 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Customer Payments & FIFO Allocation', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('Process customer payments, automatically allocate via FIFO or manual selection, and record surplus as Customer Advance Credit', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
+          // Main Form Card
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Payment Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                  const SizedBox(height: 16),
-
+                  // Row 1: Customer Dropdown & Allocation Mode
                   Row(
                     children: [
                       // Customer Dropdown
@@ -139,10 +153,60 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                         child: DropdownButtonFormField<CustomerModel>(
                           value: _selectedCustomer,
                           decoration: const InputDecoration(labelText: 'Select Customer *'),
-                          items: customerProvider.customers
-                              .map((c) => DropdownMenuItem(value: c, child: Text('${c.customerName} (Advance Credit: ${Formatters.formatCurrency(c.advanceBalance)})')))
-                              .toList(),
+                          items: customerProvider.customers.map((c) {
+                            return DropdownMenuItem(
+                              value: c,
+                              child: Text('${c.customerName} (${c.city ?? "No City"})'),
+                            );
+                          }).toList(),
                           onChanged: _onCustomerChanged,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+
+                      // Allocation Mode
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<String>(
+                          value: _allocationMode,
+                          decoration: const InputDecoration(labelText: 'Allocation Mode *'),
+                          items: const [
+                            DropdownMenuItem(value: 'FIFO', child: Text('FIFO (Oldest First)')),
+                            DropdownMenuItem(value: 'MANUAL', child: Text('Manual Allocation')),
+                          ],
+                          onChanged: (v) => setState(() => _allocationMode = v!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Row 2: Payment Date, Payment Amount, Payment Mode, Ref Number
+                  Row(
+                    children: [
+                      // Payment Date
+                      Expanded(
+                        flex: 2,
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _paymentDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) setState(() => _paymentDate = picked);
+                          },
+                          child: InputDecorator(
+                            decoration: const InputDecoration(labelText: 'Payment Date *'),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(Formatters.formatDate(_paymentDate)),
+                                const Icon(Icons.calendar_today, size: 18),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -152,55 +216,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                         flex: 2,
                         child: TextFormField(
                           controller: _amountController,
-                          decoration: const InputDecoration(labelText: 'Payment Amount (₹) *'),
+                          decoration: const InputDecoration(labelText: 'Payment Amount (₹)', hintText: '0.00'),
                           keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-
-                      // Payment Date
-                      Expanded(
-                        flex: 2,
-                        child: InkWell(
-                          onTap: () async {
-                            final dt = await showDatePicker(
-                              context: context,
-                              initialDate: _paymentDate,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2030),
-                            );
-                            if (dt != null) setState(() => _paymentDate = dt);
-                          },
-                          child: InputDecorator(
-                            decoration: const InputDecoration(labelText: 'Payment Date *'),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(Formatters.formatDate(_paymentDate)),
-                                const Icon(Icons.calendar_today, size: 18, color: AppColors.primary),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Row(
-                    children: [
-                      // Allocation Mode Choice
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<String>(
-                          value: _allocationMode,
-                          decoration: const InputDecoration(labelText: 'Allocation Algorithm *'),
-                          items: const [
-                            DropdownMenuItem(value: 'FIFO', child: Text('FIFO (Oldest Bills First)')),
-                            DropdownMenuItem(value: 'MANUAL', child: Text('Manual Allocation')),
-                          ],
-                          onChanged: (v) => setState(() => _allocationMode = v!),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -237,9 +254,16 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text('Pending Bills for ${_selectedCustomer!.customerName}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                        Text('Total Outstanding: ${Formatters.formatCurrency(totalPendingBalance)}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.error)),
+                        Row(
+                          children: [
+                            Text('Advance Credit: ${Formatters.formatCurrency(_selectedCustomer!.advanceBalance)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.success)),
+                            const SizedBox(width: 20),
+                            Text('Total Outstanding: ${Formatters.formatCurrency(totalPendingBalance)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.error)),
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -248,11 +272,18 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.check_circle, color: AppColors.success, size: 20),
-                            SizedBox(width: 8),
-                            Text('This customer has zero pending bills! Any payment entered will be recorded as Customer Advance Credit.', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w600)),
+                            const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedCustomer!.advanceBalance > 0
+                                    ? 'This customer has zero pending bills and an existing Advance Credit of ${Formatters.formatCurrency(_selectedCustomer!.advanceBalance)}.'
+                                    : 'This customer has zero pending bills! Any payment entered will be recorded as Customer Advance Credit.',
+                                style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w600),
+                              ),
+                            ),
                           ],
                         ),
                       )

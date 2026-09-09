@@ -1,4 +1,5 @@
 // CHANGE-2026-09-07: Created Customer Payments controller supporting FIFO and Manual allocation algorithms with Customer Advance credit handling.
+// CHANGE-2026-09-09: Updated processPayment to consider existing customer advance_balance during payment allocation.
 
 const { query, withTransaction } = require('../db/index');
 const { sendSuccess, sendError } = require('../utils/response');
@@ -51,12 +52,19 @@ async function processPayment(req, res, next) {
     } = req.body;
 
     const paymentAmount = parseFloat(amount || 0);
-    if (!customer_id || !payment_date || paymentAmount <= 0 || !allocation_mode) {
-      return sendError(res, 'customer_id, payment_date, valid positive amount, and allocation_mode (FIFO/MANUAL) are required');
+    if (!customer_id || !payment_date || paymentAmount < 0 || !allocation_mode) {
+      return sendError(res, 'customer_id, payment_date, valid non-negative amount, and allocation_mode (FIFO/MANUAL) are required');
     }
 
     const customers = await query('SELECT * FROM customers WHERE id = ?', [customer_id]);
     if (customers.length === 0) return sendError(res, 'Customer not found in Customer Master.', [], 404);
+
+    const existingAdvanceBalance = parseFloat(customers[0].advance_balance || 0);
+    const fundsAvailable = existingAdvanceBalance + paymentAmount;
+
+    if (fundsAvailable <= 0) {
+      return sendError(res, 'Total available funds (Payment + Existing Advance Credit) must be greater than 0');
+    }
 
     const createdPayment = await withTransaction(async (conn) => {
       // 1. Generate Receipt Number
@@ -64,9 +72,8 @@ async function processPayment(req, res, next) {
       const seq = (countRes[0].cnt + 1).toString().padStart(4, '0');
       const paymentNumber = `REC-${new Date().getFullYear()}-${seq}`;
 
-      let remainingPayment = paymentAmount;
+      let remainingFunds = fundsAvailable;
       let totalAllocated = 0;
-      let advanceCredit = 0;
       const allocationRecords = [];
 
       if (allocation_mode === 'FIFO') {
@@ -80,11 +87,11 @@ async function processPayment(req, res, next) {
         );
 
         for (const bill of pendingBills) {
-          if (remainingPayment <= 0) break;
+          if (remainingFunds <= 0) break;
           const billBal = parseFloat(bill.balance_amount);
-          const alloc = Math.min(remainingPayment, billBal);
+          const alloc = Math.min(remainingFunds, billBal);
 
-          remainingPayment -= alloc;
+          remainingFunds -= alloc;
           totalAllocated += alloc;
 
           const newPaid = parseFloat(bill.paid_amount) + alloc;
@@ -97,15 +104,6 @@ async function processPayment(req, res, next) {
           );
 
           allocationRecords.push({ sales_bill_id: bill.id, allocated_amount: alloc });
-        }
-
-        // Remaining payment beyond all pending bills becomes Customer Advance Credit
-        if (remainingPayment > 0) {
-          advanceCredit = remainingPayment;
-          await conn.execute(
-            'UPDATE customers SET advance_balance = advance_balance + ? WHERE id = ?',
-            [advanceCredit, customer_id]
-          );
         }
       } else if (allocation_mode === 'MANUAL') {
         if (!Array.isArray(manual_allocations)) {
@@ -138,16 +136,24 @@ async function processPayment(req, res, next) {
           allocationRecords.push({ sales_bill_id: bill.id, allocated_amount: allocAmt });
         }
 
-        if (paymentAmount > totalAllocated) {
-          advanceCredit = paymentAmount - totalAllocated;
-          await conn.execute(
-            'UPDATE customers SET advance_balance = advance_balance + ? WHERE id = ?',
-            [advanceCredit, customer_id]
-          );
+        if (totalAllocated > fundsAvailable + 0.01) {
+          throw new Error(`Total allocated amount ₹${totalAllocated} exceeds available funds ₹${fundsAvailable} (Payment: ₹${paymentAmount} + Advance: ₹${existingAdvanceBalance})`);
         }
+
+        remainingFunds = fundsAvailable - totalAllocated;
       } else {
         throw new Error(`Unsupported allocation mode "${allocation_mode}"`);
       }
+
+      // Update customer advance_balance with remaining funds after allocation
+      const newAdvanceBalance = Math.max(0, remainingFunds);
+      await conn.execute(
+        'UPDATE customers SET advance_balance = ? WHERE id = ?',
+        [newAdvanceBalance, customer_id]
+      );
+
+      // Calculate net advance credit added from this transaction (if any)
+      const advanceCreditAdded = Math.max(0, newAdvanceBalance - existingAdvanceBalance);
 
       // Record Customer Payment Header
       const [payInsert] = await conn.execute(
@@ -160,7 +166,7 @@ async function processPayment(req, res, next) {
           customer_id,
           paymentAmount,
           totalAllocated,
-          advanceCredit,
+          advanceCreditAdded,
           payment_mode || 'CASH',
           reference_number || null,
           notes || null

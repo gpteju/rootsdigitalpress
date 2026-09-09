@@ -161,8 +161,16 @@ async function createSalesBill(req, res, next) {
       }
       const rateConfig = rateRows[0];
 
-      // Pricing Calculation: First copy & additional copy logic
-      const { lineAmount } = calculateItemAmount(requestedQty, rateConfig.first_copy_rate, rateConfig.additional_copy_rate);
+      // Pricing Calculation: Rate Based On (Rates vs Click Rate)
+      const rateBasedOn = item.rate_based_on || 'Rates';
+      const clickRateVal = parseFloat(item.click_rate !== undefined ? item.click_rate : (rateConfig.click_rate || 0));
+      let lineAmount = 0;
+      if (rateBasedOn === 'Click Rate') {
+        lineAmount = parseFloat((clickRateVal * requestedQty).toFixed(2));
+      } else {
+        const calc = calculateItemAmount(requestedQty, rateConfig.first_copy_rate, rateConfig.additional_copy_rate);
+        lineAmount = calc.lineAmount;
+      }
       calculatedSubtotal += lineAmount;
 
       processedItems.push({
@@ -173,13 +181,15 @@ async function createSalesBill(req, res, next) {
         quantity: requestedQty,
         first_copy_rate: rateConfig.first_copy_rate,
         additional_copy_rate: rateConfig.additional_copy_rate,
+        rate_based_on: rateBasedOn,
+        click_rate: clickRateVal,
         calculated_amount: lineAmount,
         current_paper_stock: paper.current_stock
       });
     }
 
     // 5. Dynamic Tax Calculation
-    const taxResult = calculateInvoiceTax(company.state, customer.state, calculatedSubtotal, taxMaster);
+    const taxResult = calculateInvoiceTax(company.state, customer.state, calculatedSubtotal, taxMaster, company.state_code, customer.state_code);
     const rawTotal = taxResult.grandTotal;
     const finalGrandTotal = Math.round(rawTotal);
     const roundOff = parseFloat((finalGrandTotal - rawTotal).toFixed(2));
@@ -228,8 +238,8 @@ async function createSalesBill(req, res, next) {
         await conn.execute(
           `INSERT INTO sales_bill_items 
             (sales_bill_id, paper_id, printout_type_id, paper_name_snapshot, printout_type_name_snapshot,
-             quantity, first_copy_rate, additional_copy_rate, calculated_amount, tax_percentage, tax_amount, total_amount)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             quantity, first_copy_rate, additional_copy_rate, rate_based_on, click_rate, calculated_amount, tax_percentage, tax_amount, total_amount)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             billId,
             item.paper_id,
@@ -239,6 +249,8 @@ async function createSalesBill(req, res, next) {
             item.quantity,
             item.first_copy_rate,
             item.additional_copy_rate,
+            item.rate_based_on,
+            item.click_rate,
             item.calculated_amount,
             itemTaxPct,
             itemTaxAmt,

@@ -1,4 +1,5 @@
 // CHANGE-2026-09-07: Created API Endpoints configuration for Flutter REST communication.
+// CHANGE-2026-09-09: Added reportCustomerPayment endpoint.
 
 class ApiEndpoints {
   // Base URL configured for Local Backend (supports Web, Windows Desktop, Android Emulator)
@@ -31,6 +32,7 @@ class ApiEndpoints {
   static String reportCustomerPending = '$baseUrl/reports/customer-pending';
   static String reportCustomerAging = '$baseUrl/reports/customer-aging';
   static String reportStock = '$baseUrl/reports/stock';
+  static String reportCustomerPayment = '$baseUrl/reports/customer-payment';
 
   // Authentication
   static String authLogin = '$baseUrl/auth/login';

@@ -8,6 +8,7 @@ class RateModel {
   final String? printoutTypeName;
   final double firstCopyRate;
   final double additionalCopyRate;
+  final double clickRate;
   final bool isActive;
 
   RateModel({
@@ -18,6 +19,7 @@ class RateModel {
     this.printoutTypeName,
     required this.firstCopyRate,
     required this.additionalCopyRate,
+    this.clickRate = 0.0,
     this.isActive = true,
   });
 
@@ -30,6 +32,7 @@ class RateModel {
       printoutTypeName: json['printout_type_name'],
       firstCopyRate: double.tryParse(json['first_copy_rate']?.toString() ?? '0') ?? 0.0,
       additionalCopyRate: double.tryParse(json['additional_copy_rate']?.toString() ?? '0') ?? 0.0,
+      clickRate: double.tryParse(json['click_rate']?.toString() ?? '0') ?? 0.0,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
     );
   }
@@ -40,6 +43,7 @@ class RateModel {
     'printout_type_id': printoutTypeId,
     'first_copy_rate': firstCopyRate,
     'additional_copy_rate': additionalCopyRate,
+    'click_rate': clickRate,
     'is_active': isActive ? 1 : 0,
   };
 }

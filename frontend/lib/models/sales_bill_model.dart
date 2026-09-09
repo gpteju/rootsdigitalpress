@@ -9,6 +9,8 @@ class SalesBillItemModel {
   final double quantity;
   final double firstCopyRate;
   final double additionalCopyRate;
+  final String rateBasedOn;
+  final double clickRate;
   final double calculatedAmount;
   final double taxPercentage;
   final double taxAmount;
@@ -23,6 +25,8 @@ class SalesBillItemModel {
     required this.quantity,
     required this.firstCopyRate,
     required this.additionalCopyRate,
+    this.rateBasedOn = 'Rates',
+    this.clickRate = 0.0,
     required this.calculatedAmount,
     this.taxPercentage = 0.0,
     this.taxAmount = 0.0,
@@ -39,6 +43,8 @@ class SalesBillItemModel {
       quantity: double.tryParse(json['quantity']?.toString() ?? '0') ?? 0.0,
       firstCopyRate: double.tryParse(json['first_copy_rate']?.toString() ?? '0') ?? 0.0,
       additionalCopyRate: double.tryParse(json['additional_copy_rate']?.toString() ?? '0') ?? 0.0,
+      rateBasedOn: json['rate_based_on'] ?? 'Rates',
+      clickRate: double.tryParse(json['click_rate']?.toString() ?? '0') ?? 0.0,
       calculatedAmount: double.tryParse(json['calculated_amount']?.toString() ?? '0') ?? 0.0,
       taxPercentage: double.tryParse(json['tax_percentage']?.toString() ?? '0') ?? 0.0,
       taxAmount: double.tryParse(json['tax_amount']?.toString() ?? '0') ?? 0.0,
@@ -52,6 +58,8 @@ class SalesBillItemModel {
     'quantity': quantity,
     'first_copy_rate': firstCopyRate,
     'additional_copy_rate': additionalCopyRate,
+    'rate_based_on': rateBasedOn,
+    'click_rate': clickRate,
     'calculated_amount': calculatedAmount,
   };
 }
