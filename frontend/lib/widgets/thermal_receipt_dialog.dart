@@ -50,10 +50,23 @@ class ThermalReceiptDialog extends StatefulWidget {
       customerName: fullBill.customerName ?? 'Walk-in Customer',
       customerPhone: fullBill.customerPhone,
       items: fullBill.items.map((i) {
-        final desc = [i.paperNameSnapshot, i.printoutTypeNameSnapshot].where((s) => s != null && s.isNotEmpty).join(' - ');
+        final paper = (i.paperNameSnapshot ?? '').trim();
+        final job = (i.jobName ?? '').trim();
+        final printout = (i.printoutTypeNameSnapshot ?? '').trim();
+
+        String desc = paper;
+        if (job.isNotEmpty) {
+          desc = desc.isNotEmpty ? '$desc - $job' : job;
+        }
+        if (printout.isNotEmpty) {
+          desc = desc.isNotEmpty ? '$desc ($printout)' : printout;
+        }
+        if (desc.isEmpty) desc = 'Printout Service';
+
         final rate = i.quantity > 0 ? (i.calculatedAmount / i.quantity) : 0.0;
         return ReceiptLineItem(
-          description: desc.isNotEmpty ? desc : 'Printout Service',
+          description: desc,
+          jobName: i.jobName,
           quantity: i.quantity,
           rate: rate,
           amount: i.calculatedAmount,
@@ -110,10 +123,23 @@ class ThermalReceiptDialog extends StatefulWidget {
       customerName: job.customerName ?? 'Estimate Customer',
       customerPhone: job.customerPhone,
       items: jobItems.map((i) {
-        final desc = [i.paperNameSnapshot, i.printoutTypeNameSnapshot].where((s) => s.isNotEmpty).join(' - ');
+        final paper = i.paperNameSnapshot.trim();
+        final job = (i.jobName ?? '').trim();
+        final printout = i.printoutTypeNameSnapshot.trim();
+
+        String desc = paper;
+        if (job.isNotEmpty) {
+          desc = desc.isNotEmpty ? '$desc - $job' : job;
+        }
+        if (printout.isNotEmpty) {
+          desc = desc.isNotEmpty ? '$desc ($printout)' : printout;
+        }
+        if (desc.isEmpty) desc = 'Estimate Printout Item';
+
         final rate = i.quantity > 0 ? (i.calculatedAmount / i.quantity) : 0.0;
         return ReceiptLineItem(
-          description: desc.isNotEmpty ? desc : 'Estimate Printout Item',
+          description: desc,
+          jobName: i.jobName,
           quantity: i.quantity,
           rate: rate,
           amount: i.calculatedAmount,
@@ -334,12 +360,19 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
                         final String qtyFormatted = item.quantity.truncateToDouble() == item.quantity
                             ? 'x${item.quantity.toInt()}'
                             : 'x${item.quantity.toStringAsFixed(2)}';
+
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(flex: 6, child: Text(item.description, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace'))),
+                              Expanded(
+                                flex: 6,
+                                child: Text(
+                                  item.description,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace', color: Colors.black),
+                                ),
+                              ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
@@ -348,7 +381,14 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
                                 ),
                               ),
-                              Expanded(flex: 4, child: Text(item.amount.toStringAsFixed(2), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace'))),
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  item.amount.toStringAsFixed(2),
+                                  textAlign: TextAlign.right,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                                ),
+                              ),
                             ],
                           ),
                         );

@@ -32,9 +32,9 @@ class ThermalPrinterService
         $out .= "------------------------------------------------\n";
 
         $out .= $ESC . "a" . "\x00";
+        $out .= "Customer: " . ($customer['customer_name'] ?? 'Cash Customer') . "\n";
         $out .= "Bill No : " . ($bill['bill_number'] ?? $bill['job_number'] ?? '') . "\n";
         $out .= "Date    : " . ($bill['bill_date'] ?? $bill['job_date'] ?? '') . "\n";
-        $out .= "Customer: " . ($customer['customer_name'] ?? 'Cash Customer') . "\n";
         $out .= "------------------------------------------------\n";
 
         $out .= sprintf("%-20s %5s %8s %10s\n", "Item", "Qty", "Rate", "Amount");
@@ -42,16 +42,26 @@ class ThermalPrinterService
 
         foreach ($items as $item) {
             $paperName = $item['paper_name_snapshot'] ?? $item['paper_name'] ?? 'Item';
-            $jobName = !empty($item['job_name']) ? $item['job_name'] : '';
-            $itemName = $paperName . $jobName;
-            // if (strlen($itemName) > 20) {
-            //     $itemName = substr($itemName, 0, 17) . '...';
-            // }
-            $qty = $item['quantity'] ?? 0;
+            $printoutType = $item['printout_type_name_snapshot'] ?? '';
+            $jobName = !empty($item['job_name']) ? trim($item['job_name']) : '';
+            $qty = (int)($item['quantity'] ?? 0);
             $rate = ($item['calculated_amount'] ?? 0) > 0 && $qty > 0 ? (($item['calculated_amount'] ?? 0) / $qty) : 0;
-            $amt = $item['calculated_amount'] ?? $item['total_amount'] ?? 0;
+            $amt = (float)($item['calculated_amount'] ?? $item['total_amount'] ?? 0);
 
-            $out .= sprintf("%-20s %5d %8.2f %10.2f\n", $itemName, $qty, $rate, $amt);
+            $desc = $paperName;
+            if (!empty($jobName)) {
+                $desc .= " - {$jobName}";
+            }
+            if (!empty($printoutType)) {
+                $desc .= " ({$printoutType})";
+            }
+
+            if (strlen($desc) > 20) {
+                $out .= $desc . "\n";
+                $out .= sprintf("%-20s %5d %8.2f %10.2f\n", "", $qty, $rate, $amt);
+            } else {
+                $out .= sprintf("%-20s %5d %8.2f %10.2f\n", $desc, $qty, $rate, $amt);
+            }
         }
 
         $out .= "------------------------------------------------\n";

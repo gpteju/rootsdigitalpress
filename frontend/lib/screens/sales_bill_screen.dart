@@ -252,7 +252,10 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
         items: _lineItems.map((i) {
           return SalesBillItemModel(
             paperId: i['paper'].id!,
+            jobName: i['job_name'],
             printoutTypeId: i['printout_type'].id!,
+            paperNameSnapshot: i['paper'].paperName,
+            printoutTypeNameSnapshot: i['printout_type'].name,
             quantity: i['quantity'],
             firstCopyRate: i['first_copy_rate'],
             additionalCopyRate: i['additional_copy_rate'],

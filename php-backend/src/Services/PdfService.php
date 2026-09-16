@@ -26,7 +26,15 @@ class PdfService
             $name = htmlspecialchars($item['paper_name_snapshot'] ?? $item['paper_name'] ?? '');
             $jobName = htmlspecialchars($item['job_name'] ?? '');
             $printoutType = htmlspecialchars($item['printout_type_name_snapshot'] ?? '');
-            $fullDesc = $name . ($jobName ? " - {$jobName}" : '') . ($printoutType ? " ({$printoutType})" : '');
+
+            $desc = $name;
+            if (!empty($jobName)) {
+                $desc .= " - {$jobName}";
+            }
+            if (!empty($printoutType)) {
+                $desc .= " ({$printoutType})";
+            }
+
             $qty = (int)($item['quantity'] ?? 0);
             $rate = ($item['calculated_amount'] ?? 0) > 0 && $qty > 0 ? number_format(($item['calculated_amount'] ?? 0) / $qty, 2) : '0.00';
             $amount = number_format($item['calculated_amount'] ?? $item['total_amount'] ?? 0, 2);
@@ -34,7 +42,7 @@ class PdfService
             $itemsHtml .= "
                 <tr>
                     <td style='text-align:center;'>{$idx}</td>
-                    <td>{$fullDesc}</td>
+                    <td>{$desc}</td>
                     <td style='text-align:right;'>{$qty}</td>
                     <td style='text-align:right;'>Rs. {$rate}</td>
                     <td style='text-align:right;'>Rs. {$amount}</td>

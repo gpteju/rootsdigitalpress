@@ -42,6 +42,7 @@ class ReceiptPrintData {
   final String invoiceDate;
   final String customerName;
   final String? customerPhone;
+  final String? jobName;
   final List<ReceiptLineItem> items;
   final double subtotal;
   final String? taxName;
@@ -65,6 +66,7 @@ class ReceiptPrintData {
     required this.invoiceDate,
     required this.customerName,
     this.customerPhone,
+    this.jobName,
     required this.items,
     required this.subtotal,
     this.taxName,
@@ -217,6 +219,7 @@ class PrinterService {
       } else if ((tag == 'L' || tag == 'B') &&
           content.contains(':') &&
           (content.contains('Name:') ||
+           content.contains('Job Name:') ||
            content.contains('Bill No:') ||
            content.contains('Date:') ||
            content.contains('Time:') ||
