@@ -126,6 +126,7 @@ async function createJob(req, res, next) {
           paper_id: paper.id,
           printout_type_id: printout.id,
           paper_name_snapshot: paper.paper_name,
+        job_name: item.job_name || null,
           printout_type_name_snapshot: printout.name || printout.type_name || '',
           quantity,
           first_copy_rate: firstCopyRate,
@@ -157,14 +158,15 @@ async function createJob(req, res, next) {
       for (const item of processedItems) {
         await conn.execute(
           `INSERT INTO job_detail_items 
-            (job_detail_id, paper_id, printout_type_id, paper_name_snapshot, printout_type_name_snapshot,
+            (job_detail_id, paper_id, printout_type_id, paper_name_snapshot, job_name, printout_type_name_snapshot,
              quantity, first_copy_rate, additional_copy_rate, calculated_amount, total_amount)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             jobDetailId,
             item.paper_id,
             item.printout_type_id,
             item.paper_name_snapshot || '',
+            item.job_name || null,
             item.printout_type_name_snapshot || '',
             item.quantity ?? 0,
             item.first_copy_rate ?? 0,

@@ -54,37 +54,58 @@ class PaperProvider extends ChangeNotifier {
 
   Future<void> fetchPaperTypes() async {
     final res = await _api.get<List<PaperTypeModel>>(ApiEndpoints.paperTypes, parser: (j) => (j as List).map((i) => PaperTypeModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _paperTypes = res.data!;
+    if (res.success && res.data != null) {
+      _paperTypes = res.data!;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchPaperGsms() async {
     final res = await _api.get<List<PaperGsmModel>>(ApiEndpoints.paperGsm, parser: (j) => (j as List).map((i) => PaperGsmModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _paperGsms = res.data!;
+    if (res.success && res.data != null) {
+      _paperGsms = res.data!;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchPaperSizes() async {
     final res = await _api.get<List<PaperSizeModel>>(ApiEndpoints.paperSizes, parser: (j) => (j as List).map((i) => PaperSizeModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _paperSizes = res.data!;
+    if (res.success && res.data != null) {
+      _paperSizes = res.data!;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchPapers() async {
     final res = await _api.get<List<PaperModel>>(ApiEndpoints.papers, parser: (j) => (j as List).map((i) => PaperModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _papers = res.data!;
+    if (res.success && res.data != null) {
+      _papers = res.data!;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchPrintoutTypes() async {
     final res = await _api.get<List<PrintoutTypeModel>>(ApiEndpoints.printoutTypes, parser: (j) => (j as List).map((i) => PrintoutTypeModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _printoutTypes = res.data!;
+    if (res.success && res.data != null) {
+      _printoutTypes = res.data!;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchTaxes() async {
     final res = await _api.get<List<TaxModel>>(ApiEndpoints.taxes, parser: (j) => (j as List).map((i) => TaxModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _taxes = res.data!;
+    if (res.success && res.data != null) {
+      _taxes = res.data!;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchRates() async {
     final res = await _api.get<List<RateModel>>(ApiEndpoints.rates, parser: (j) => (j as List).map((i) => RateModel.fromJson(i)).toList());
-    if (res.success && res.data != null) _rates = res.data!;
+    if (res.success && res.data != null) {
+      _rates = res.data!;
+      notifyListeners();
+    }
   }
 
   /// Rate Lookup from database
@@ -102,19 +123,19 @@ class PaperProvider extends ChangeNotifier {
   // Master Creation & Update Handlers
   Future<bool> createPaperType(PaperTypeModel type) async {
     final res = await _api.post<PaperTypeModel>(ApiEndpoints.paperTypes, type.toJson(), parser: (j) => PaperTypeModel.fromJson(j));
-    if (res.success) { await fetchPaperTypes(); return true; }
+    if (res.success) { await fetchPaperTypes(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
   Future<bool> updatePaperType(int id, PaperTypeModel type) async {
     final res = await _api.put<PaperTypeModel>('${ApiEndpoints.paperTypes}/$id', type.toJson(), parser: (j) => PaperTypeModel.fromJson(j));
-    if (res.success) { await fetchPaperTypes(); return true; }
+    if (res.success) { await fetchPaperTypes(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
   Future<bool> createPaperGsm(PaperGsmModel gsm) async {
     final res = await _api.post<PaperGsmModel>(ApiEndpoints.paperGsm, gsm.toJson(), parser: (j) => PaperGsmModel.fromJson(j));
-    if (res.success) { await fetchPaperGsms(); return true; }
+    if (res.success) { await fetchPaperGsms(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
@@ -126,7 +147,7 @@ class PaperProvider extends ChangeNotifier {
 
   Future<bool> createPaperSize(PaperSizeModel size) async {
     final res = await _api.post<PaperSizeModel>(ApiEndpoints.paperSizes, size.toJson(), parser: (j) => PaperSizeModel.fromJson(j));
-    if (res.success) { await fetchPaperSizes(); return true; }
+    if (res.success) { await fetchPaperSizes(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
@@ -138,13 +159,13 @@ class PaperProvider extends ChangeNotifier {
 
   Future<bool> createPaper(PaperModel paper) async {
     final res = await _api.post<PaperModel>(ApiEndpoints.papers, paper.toJson(), parser: (j) => PaperModel.fromJson(j));
-    if (res.success) { await fetchPapers(); return true; }
+    if (res.success) { await fetchPapers(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
   Future<bool> createPrintoutType(PrintoutTypeModel pt) async {
     final res = await _api.post<PrintoutTypeModel>(ApiEndpoints.printoutTypes, pt.toJson(), parser: (j) => PrintoutTypeModel.fromJson(j));
-    if (res.success) { await fetchPrintoutTypes(); return true; }
+    if (res.success) { await fetchPrintoutTypes(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
@@ -156,13 +177,13 @@ class PaperProvider extends ChangeNotifier {
 
   Future<bool> createTax(TaxModel tax) async {
     final res = await _api.post<TaxModel>(ApiEndpoints.taxes, tax.toJson(), parser: (j) => TaxModel.fromJson(j));
-    if (res.success) { await fetchTaxes(); return true; }
+    if (res.success) { await fetchTaxes(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 
   Future<bool> createRate(RateModel rate) async {
     final res = await _api.post<RateModel>(ApiEndpoints.rates, rate.toJson(), parser: (j) => RateModel.fromJson(j));
-    if (res.success) { await fetchRates(); return true; }
+    if (res.success) { await fetchRates(); notifyListeners(); return true; }
     _errorMessage = res.message; notifyListeners(); return false;
   }
 

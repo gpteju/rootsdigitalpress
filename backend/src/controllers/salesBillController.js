@@ -177,6 +177,7 @@ async function createSalesBill(req, res, next) {
         paper_id: paper.id,
         printout_type_id: printout.id,
         paper_name_snapshot: paper.paper_name,
+        job_name: item.job_name || null,
         printout_type_name_snapshot: printout.name,
         quantity: requestedQty,
         first_copy_rate: rateConfig.first_copy_rate,
@@ -237,14 +238,15 @@ async function createSalesBill(req, res, next) {
 
         await conn.execute(
           `INSERT INTO sales_bill_items 
-            (sales_bill_id, paper_id, printout_type_id, paper_name_snapshot, printout_type_name_snapshot,
+            (sales_bill_id, paper_id, printout_type_id, paper_name_snapshot, job_name, printout_type_name_snapshot,
              quantity, first_copy_rate, additional_copy_rate, rate_based_on, click_rate, calculated_amount, tax_percentage, tax_amount, total_amount)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             billId,
             item.paper_id,
             item.printout_type_id,
             item.paper_name_snapshot,
+            item.job_name,
             item.printout_type_name_snapshot,
             item.quantity,
             item.first_copy_rate,

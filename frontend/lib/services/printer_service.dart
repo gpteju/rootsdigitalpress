@@ -17,12 +17,14 @@ import '../core/constants/api_endpoints.dart';
 
 class ReceiptLineItem {
   final String description;
+  final String? jobName;
   final double quantity;
   final double rate;
   final double amount;
 
   const ReceiptLineItem({
     required this.description,
+    this.jobName,
     required this.quantity,
     required this.rate,
     required this.amount,

@@ -4,7 +4,7 @@
 class ApiEndpoints {
   // Base URL configured for Local Backend (supports Web, Windows Desktop, Android Emulator)
   // For Android Emulator, host '10.0.2.2' is used automatically if running on Android emulator.
-  static String baseUrl = 'http://localhost:9002/api';
+  static String baseUrl = 'http://localhost:8080/api';
 
   static String company = '$baseUrl/company';
   static String customers = '$baseUrl/customers';

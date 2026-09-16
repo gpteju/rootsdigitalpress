@@ -1,0 +1,1388 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Printout Company Billing REST API",
+    "version": "1.0.0",
+    "description": "Complete OpenAPI 3.0 Documentation for Printout Company Billing Software Node.js REST API."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:9002",
+      "description": "Development Server (Port 9002)"
+    },
+    {
+      "url": "http://localhost:5000",
+      "description": "Alternative Local Server (Port 5000)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT token obtained from /api/auth/login"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "API Health Check",
+        "tags": [
+          "Health"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API server is healthy and operational"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User Login",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Admin@123456"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful, returns JWT token"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get Authenticated User Profile",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user profile data"
+          }
+        }
+      }
+    },
+    "/api/company": {
+      "get": {
+        "summary": "Get Company Details",
+        "tags": [
+          "Company Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "Company master details"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create or Update Company Details",
+        "tags": [
+          "Company Master"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "company_name": {
+                    "type": "string",
+                    "example": "ROOTS DIGITAL PRESS"
+                  },
+                  "gstin": {
+                    "type": "string",
+                    "example": "33AAAAA0000A1Z5"
+                  },
+                  "address": {
+                    "type": "string",
+                    "example": "123 Main Street"
+                  },
+                  "city": {
+                    "type": "string",
+                    "example": "Chennai"
+                  },
+                  "state": {
+                    "type": "string",
+                    "example": "TAMIL NADU"
+                  },
+                  "state_code": {
+                    "type": "string",
+                    "example": "33"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "9876543210"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "info@rootsdigital.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Company profile updated"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Company Details",
+        "tags": [
+          "Company Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "Company profile updated"
+          }
+        }
+      }
+    },
+    "/api/customers": {
+      "get": {
+        "summary": "List All Customers",
+        "tags": [
+          "Customer Master"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search by name, phone, or email"
+          },
+          {
+            "name": "customer_type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by NORMAL or ESTIMATE"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of customers"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create New Customer",
+        "tags": [
+          "Customer Master"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_name": {
+                    "type": "string",
+                    "example": "TECHNOVA IMAGING SYSTEM PVT LTD"
+                  },
+                  "customer_type": {
+                    "type": "string",
+                    "example": "NORMAL"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "9876543210"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "billing@technova.com"
+                  },
+                  "address": {
+                    "type": "string",
+                    "example": "45 Industrial Estate"
+                  },
+                  "city": {
+                    "type": "string",
+                    "example": "Chennai"
+                  },
+                  "state": {
+                    "type": "string",
+                    "example": "TAMIL NADU"
+                  },
+                  "state_code": {
+                    "type": "string",
+                    "example": "33"
+                  },
+                  "gstin": {
+                    "type": "string",
+                    "example": "33BBBBA1111B1Z2"
+                  },
+                  "advance_credit": {
+                    "type": "number",
+                    "example": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created successfully"
+          }
+        }
+      }
+    },
+    "/api/customers/{id}": {
+      "get": {
+        "summary": "Get Customer Details by ID",
+        "tags": [
+          "Customer Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Customer by ID",
+        "tags": [
+          "Customer Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deactivate Customer",
+        "tags": [
+          "Customer Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer deactivated"
+          }
+        }
+      }
+    },
+    "/api/suppliers": {
+      "get": {
+        "summary": "List All Suppliers",
+        "tags": [
+          "Supplier Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suppliers"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create New Supplier",
+        "tags": [
+          "Supplier Master"
+        ],
+        "responses": {
+          "201": {
+            "description": "Supplier created"
+          }
+        }
+      }
+    },
+    "/api/suppliers/{id}": {
+      "get": {
+        "summary": "Get Supplier by ID",
+        "tags": [
+          "Supplier Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supplier details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Supplier",
+        "tags": [
+          "Supplier Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supplier updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deactivate Supplier",
+        "tags": [
+          "Supplier Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supplier deactivated"
+          }
+        }
+      }
+    },
+    "/api/paper-types": {
+      "get": {
+        "summary": "Get Paper Types",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of paper types"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Paper Type",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "201": {
+            "description": "Paper type created"
+          }
+        }
+      }
+    },
+    "/api/paper-types/{id}": {
+      "put": {
+        "summary": "Update Paper Type",
+        "tags": [
+          "Paper Masters"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paper type updated"
+          }
+        }
+      }
+    },
+    "/api/paper-gsm": {
+      "get": {
+        "summary": "Get Paper GSM Values",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of GSM values"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Paper GSM",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "201": {
+            "description": "GSM created"
+          }
+        }
+      }
+    },
+    "/api/paper-gsm/{id}": {
+      "put": {
+        "summary": "Update Paper GSM",
+        "tags": [
+          "Paper Masters"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "GSM updated"
+          }
+        }
+      }
+    },
+    "/api/paper-sizes": {
+      "get": {
+        "summary": "Get Paper Sizes",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of paper sizes"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Paper Size",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "201": {
+            "description": "Size created"
+          }
+        }
+      }
+    },
+    "/api/paper-sizes/{id}": {
+      "put": {
+        "summary": "Update Paper Size",
+        "tags": [
+          "Paper Masters"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Size updated"
+          }
+        }
+      }
+    },
+    "/api/papers": {
+      "get": {
+        "summary": "Get Unified Papers",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of papers"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Unified Paper Master",
+        "tags": [
+          "Paper Masters"
+        ],
+        "responses": {
+          "201": {
+            "description": "Paper created"
+          }
+        }
+      }
+    },
+    "/api/papers/{id}": {
+      "put": {
+        "summary": "Update Unified Paper Master",
+        "tags": [
+          "Paper Masters"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paper updated"
+          }
+        }
+      }
+    },
+    "/api/printout-types": {
+      "get": {
+        "summary": "Get Printout Types",
+        "tags": [
+          "Printout Type Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of printout types"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Printout Type",
+        "tags": [
+          "Printout Type Master"
+        ],
+        "responses": {
+          "201": {
+            "description": "Printout type created"
+          }
+        }
+      }
+    },
+    "/api/printout-types/{id}": {
+      "put": {
+        "summary": "Update Printout Type",
+        "tags": [
+          "Printout Type Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Printout type updated"
+          }
+        }
+      }
+    },
+    "/api/taxes": {
+      "get": {
+        "summary": "Get Taxes with Sub-Taxes",
+        "tags": [
+          "Tax Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax masters"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Tax Master",
+        "tags": [
+          "Tax Master"
+        ],
+        "responses": {
+          "201": {
+            "description": "Tax created"
+          }
+        }
+      }
+    },
+    "/api/taxes/{id}": {
+      "get": {
+        "summary": "Get Tax by ID",
+        "tags": [
+          "Tax Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Tax Master",
+        "tags": [
+          "Tax Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax updated"
+          }
+        }
+      }
+    },
+    "/api/rates": {
+      "get": {
+        "summary": "Get Rates List",
+        "tags": [
+          "Rate Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "Rates list"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Rate Configuration",
+        "tags": [
+          "Rate Master"
+        ],
+        "responses": {
+          "201": {
+            "description": "Rate created"
+          }
+        }
+      }
+    },
+    "/api/rates/lookup": {
+      "get": {
+        "summary": "Lookup Rate for Paper & Printout Type",
+        "tags": [
+          "Rate Master"
+        ],
+        "parameters": [
+          {
+            "name": "paper_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "printout_type_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rate configuration"
+          }
+        }
+      }
+    },
+    "/api/rates/{id}": {
+      "put": {
+        "summary": "Update Rate",
+        "tags": [
+          "Rate Master"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rate updated"
+          }
+        }
+      }
+    },
+    "/api/sales-bills": {
+      "get": {
+        "summary": "List Sales Bills",
+        "tags": [
+          "Sales Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sales bills"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create New Sales Bill",
+        "tags": [
+          "Sales Billing"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "bill_date": {
+                    "type": "string",
+                    "example": "2026-09-16"
+                  },
+                  "tax_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "paper_id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "printout_type_id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "quantity": {
+                          "type": "number",
+                          "example": 100
+                        },
+                        "rate_based_on": {
+                          "type": "string",
+                          "example": "Rates"
+                        },
+                        "first_copy_rate": {
+                          "type": "number",
+                          "example": 2.5
+                        },
+                        "additional_copy_rate": {
+                          "type": "number",
+                          "example": 2
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bill created successfully"
+          }
+        }
+      }
+    },
+    "/api/sales-bills/{id}": {
+      "get": {
+        "summary": "Get Sales Bill Details",
+        "tags": [
+          "Sales Billing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sales bill details"
+          }
+        }
+      }
+    },
+    "/api/sales-bills/{id}/pdf": {
+      "get": {
+        "summary": "Download Invoice PDF Stream",
+        "tags": [
+          "Sales Billing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF file binary stream"
+          }
+        }
+      }
+    },
+    "/api/sales-bills/{id}/email": {
+      "post": {
+        "summary": "Email Invoice PDF to Customer",
+        "tags": [
+          "Sales Billing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email sent"
+          }
+        }
+      }
+    },
+    "/api/sales-bills/{id}/print": {
+      "post": {
+        "summary": "Send Bill to Thermal Printer",
+        "tags": [
+          "Sales Billing"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Print command dispatched"
+          }
+        }
+      }
+    },
+    "/api/customer-payments": {
+      "get": {
+        "summary": "List Customer Payments",
+        "tags": [
+          "Customer Payments"
+        ],
+        "responses": {
+          "200": {
+            "description": "Payments list"
+          }
+        }
+      },
+      "post": {
+        "summary": "Process Customer Payment with Advance Credit",
+        "tags": [
+          "Customer Payments"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "payment_date": {
+                    "type": "string",
+                    "example": "2026-09-16"
+                  },
+                  "payment_mode": {
+                    "type": "string",
+                    "example": "CASH"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment processed"
+          }
+        }
+      }
+    },
+    "/api/customer-payments/pending-bills/{customerId}": {
+      "get": {
+        "summary": "Get Customer Pending Bills & Advance Balance",
+        "tags": [
+          "Customer Payments"
+        ],
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pending bills"
+          }
+        }
+      }
+    },
+    "/api/purchases": {
+      "get": {
+        "summary": "List Supplier Purchases",
+        "tags": [
+          "Supplier Purchases"
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchases list"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Supplier Purchase Record",
+        "tags": [
+          "Supplier Purchases"
+        ],
+        "responses": {
+          "201": {
+            "description": "Purchase recorded"
+          }
+        }
+      }
+    },
+    "/api/purchases/{id}": {
+      "get": {
+        "summary": "Get Supplier Purchase Details",
+        "tags": [
+          "Supplier Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchase details"
+          }
+        }
+      }
+    },
+    "/api/stock/summary": {
+      "get": {
+        "summary": "Get Stock Summary & Low Stock Warnings",
+        "tags": [
+          "Stock Ledger"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock summary"
+          }
+        }
+      }
+    },
+    "/api/stock/ledger": {
+      "get": {
+        "summary": "Get Stock Ledger Audit History",
+        "tags": [
+          "Stock Ledger"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock ledger"
+          }
+        }
+      }
+    },
+    "/api/stock/adjust": {
+      "post": {
+        "summary": "Adjust Stock Manually",
+        "tags": [
+          "Stock Ledger"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock adjusted"
+          }
+        }
+      }
+    },
+    "/api/reports/daily-sales": {
+      "get": {
+        "summary": "Daily Sales Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily sales"
+          }
+        }
+      }
+    },
+    "/api/reports/customer-wise": {
+      "get": {
+        "summary": "Customer-Wise Sales Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer-wise sales"
+          }
+        }
+      }
+    },
+    "/api/reports/supplier-purchases": {
+      "get": {
+        "summary": "Supplier Purchases Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Supplier purchases"
+          }
+        }
+      }
+    },
+    "/api/reports/customer-pending": {
+      "get": {
+        "summary": "Customer Pending Bills Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Pending report"
+          }
+        }
+      }
+    },
+    "/api/reports/customer-aging": {
+      "get": {
+        "summary": "Customer Outstanding Aging Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Aging report"
+          }
+        }
+      }
+    },
+    "/api/reports/stock": {
+      "get": {
+        "summary": "Stock Inventory Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock report"
+          }
+        }
+      }
+    },
+    "/api/reports/customer-payment": {
+      "get": {
+        "summary": "Customer Payment Summary Report",
+        "tags": [
+          "Reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment report"
+          }
+        }
+      }
+    },
+    "/api/settings/printer": {
+      "get": {
+        "summary": "Get Printer Configuration",
+        "tags": [
+          "Printer Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Printer settings"
+          }
+        }
+      },
+      "post": {
+        "summary": "Save Printer Configuration",
+        "tags": [
+          "Printer Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Settings saved"
+          }
+        }
+      }
+    },
+    "/api/settings/printer/test": {
+      "post": {
+        "summary": "Test Thermal Printer Connection",
+        "tags": [
+          "Printer Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Test sent"
+          }
+        }
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "summary": "List Job Estimates",
+        "tags": [
+          "Job Estimates"
+        ],
+        "responses": {
+          "200": {
+            "description": "Jobs list"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Job Estimate",
+        "tags": [
+          "Job Estimates"
+        ],
+        "responses": {
+          "201": {
+            "description": "Job estimate created"
+          }
+        }
+      }
+    },
+    "/api/jobs/{id}": {
+      "get": {
+        "summary": "Get Job Estimate Details",
+        "tags": [
+          "Job Estimates"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job details"
+          }
+        }
+      }
+    },
+    "/api/jobs/{id}/pdf": {
+      "get": {
+        "summary": "Download Job Estimate PDF",
+        "tags": [
+          "Job Estimates"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF stream"
+          }
+        }
+      }
+    },
+    "/api/jobs/{id}/email": {
+      "post": {
+        "summary": "Email Job Estimate PDF",
+        "tags": [
+          "Job Estimates"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email sent"
+          }
+        }
+      }
+    },
+    "/api/jobs/{id}/print": {
+      "post": {
+        "summary": "Print Job Estimate Slip",
+        "tags": [
+          "Job Estimates"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Print dispatched"
+          }
+        }
+      }
+    }
+  }
+}

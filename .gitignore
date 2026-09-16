@@ -15,6 +15,17 @@
 /frontend/.env
 /frontend/pubspec.lock
 
+/php-backend/.env
+/php-backend/.env.local
+/php-backend/vendor
+/php-backend/.DS_Store
+/php-backend/.env.example
+/php-backend/composer.lock
+# /php-backend/composer.json
+/php-backend/API_MIGRATION_STATUS.md
+/php-backend/.vscode/
+/php-backend/README.md
+
 # Documentation
 /docs/
 

@@ -120,7 +120,10 @@ function generateThermalReceipt(billData) {
   out += lineDivider;
 
   for (const item of items) {
-    const printoutName = item.printout_type_name_snapshot || item.paper_name_snapshot || 'Item';
+    let printoutName = item.paper_name_snapshot || item.printout_type_name_snapshot || 'Item';
+    if (item.job_name && item.job_name.trim()) {
+      printoutName += ` (${item.job_name.trim()})`;
+    }
     const qtyStr = parseFloat(item.quantity).toString().padStart(col2Width);
     const totalStr = parseFloat(item.calculated_amount || item.total_amount || 0).toFixed(2).padStart(col3Width);
 

@@ -5,6 +5,7 @@ class SalesBillItemModel {
   final int paperId;
   final int printoutTypeId;
   final String? paperNameSnapshot;
+  final String? jobName;
   final String? printoutTypeNameSnapshot;
   final double quantity;
   final double firstCopyRate;
@@ -21,6 +22,7 @@ class SalesBillItemModel {
     required this.paperId,
     required this.printoutTypeId,
     this.paperNameSnapshot,
+    this.jobName,
     this.printoutTypeNameSnapshot,
     required this.quantity,
     required this.firstCopyRate,
@@ -39,6 +41,7 @@ class SalesBillItemModel {
       paperId: json['paper_id'] ?? 0,
       printoutTypeId: json['printout_type_id'] ?? 0,
       paperNameSnapshot: json['paper_name_snapshot'],
+      jobName: json['job_name'],
       printoutTypeNameSnapshot: json['printout_type_name_snapshot'],
       quantity: double.tryParse(json['quantity']?.toString() ?? '0') ?? 0.0,
       firstCopyRate: double.tryParse(json['first_copy_rate']?.toString() ?? '0') ?? 0.0,
@@ -54,6 +57,7 @@ class SalesBillItemModel {
 
   Map<String, dynamic> toJson() => {
     'paper_id': paperId,
+    'job_name': jobName,
     'printout_type_id': printoutTypeId,
     'quantity': quantity,
     'first_copy_rate': firstCopyRate,

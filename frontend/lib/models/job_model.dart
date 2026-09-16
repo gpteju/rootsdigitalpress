@@ -6,6 +6,7 @@ class JobItemModel {
   final int paperId;
   final int printoutTypeId;
   final String paperNameSnapshot;
+  final String? jobName;
   final String printoutTypeNameSnapshot;
   final double quantity;
   final double firstCopyRate;
@@ -19,6 +20,7 @@ class JobItemModel {
     required this.paperId,
     required this.printoutTypeId,
     required this.paperNameSnapshot,
+    this.jobName,
     required this.printoutTypeNameSnapshot,
     required this.quantity,
     required this.firstCopyRate,
@@ -34,6 +36,7 @@ class JobItemModel {
       paperId: json['paper_id'],
       printoutTypeId: json['printout_type_id'],
       paperNameSnapshot: json['paper_name_snapshot'] ?? '',
+      jobName: json['job_name'],
       printoutTypeNameSnapshot: json['printout_type_name_snapshot'] ?? '',
       quantity: double.tryParse(json['quantity']?.toString() ?? '0') ?? 0.0,
       firstCopyRate: double.tryParse(json['first_copy_rate']?.toString() ?? '0') ?? 0.0,
@@ -49,6 +52,7 @@ class JobItemModel {
       'paper_id': paperId,
       'printout_type_id': printoutTypeId,
       'paper_name_snapshot': paperNameSnapshot,
+      'job_name': jobName,
       'printout_type_name_snapshot': printoutTypeNameSnapshot,
       'quantity': quantity,
       'first_copy_rate': firstCopyRate,

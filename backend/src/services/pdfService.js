@@ -334,7 +334,8 @@ function buildNormalCustomerA4TaxInvoiceBuffer(bill, customer, company, items) {
 
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        const itemTitle = item.printout_type_name_snapshot || item.paper_name_snapshot || item.rate_type || 'Line Item';
+        const paperTitle = item.paper_name_snapshot || item.printout_type_name_snapshot || item.rate_type || 'Line Item';
+        const itemTitle = item.job_name ? `${paperTitle} - ${item.job_name}` : paperTitle;
         const hsnVal = item.hsn_code || '9988';
         const qtyVal = parseFloat(item.quantity || 1).toString();
         const amtVal = parseFloat(item.calculated_amount || item.total_amount || 0);

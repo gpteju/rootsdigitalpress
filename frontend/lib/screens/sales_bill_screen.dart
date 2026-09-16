@@ -55,6 +55,7 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
     setState(() {
       _lineItems.add({
         'paper': paperProvider.papers.first,
+        'job_name': '',
         'printout_type': paperProvider.printoutTypes.first,
         'quantity': 1.0,
         'rate_based_on': 'Rates',
@@ -188,6 +189,7 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
         items: _lineItems.map((i) {
           return JobItemModel(
             paperId: i['paper'].id!,
+            jobName: i['job_name'],
             printoutTypeId: i['printout_type'].id!,
             paperNameSnapshot: i['paper'].paperName,
             printoutTypeNameSnapshot: i['printout_type'].name,
@@ -482,6 +484,18 @@ class _SalesBillScreenState extends State<SalesBillScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             children: [
+                              // Job Name Input
+                              Expanded(
+                                flex: 3,
+                                child: TextFormField(
+                                  initialValue: item['job_name']?.toString() ?? '',
+                                  decoration: const InputDecoration(labelText: 'Job Name'),
+                                  onChanged: (v) {
+                                    item['job_name'] = v;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 10),
                               // Paper Dropdown
                               Expanded(
                                 flex: 3,

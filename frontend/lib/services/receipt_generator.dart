@@ -176,8 +176,12 @@ class ReceiptGenerator {
             ? 'x${item.quantity.toInt()}'
             : 'x${item.quantity.toStringAsFixed(2)}';
 
+        final String fullItemDesc = (item.jobName != null && item.jobName!.trim().isNotEmpty)
+            ? '${item.description} (${item.jobName!.trim()})'
+            : item.description;
+
         final itemLines = formatRowThreeLines(
-          item.description,
+          fullItemDesc,
           qtyFormatted,
           item.amount.toStringAsFixed(2),
         );
