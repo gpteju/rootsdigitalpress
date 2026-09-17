@@ -81,7 +81,7 @@ class ReceiptGenerator {
       final cut = (maxNameLen - 3).clamp(0, maxNameLen);
       name = '${name.substring(0, cut)}...';
     }
-    return 'L:${name.padRight(_nameWidth)}${qty.padLeft(_qtyWidth)}${price.padLeft(_priceWidth)}';
+    return 'B:${name.padRight(_nameWidth)}${qty.padLeft(_qtyWidth)}${price.padLeft(_priceWidth)}';
   }
 
   /// Formats a three-column item row, wrapping long item descriptions across lines
@@ -113,7 +113,7 @@ class ReceiptGenerator {
 
     final result = <String>[];
     for (int i = 0; i < lines.length - 1; i++) {
-      result.add('L:${lines[i].padRight(width)}');
+      result.add('B:${lines[i].padRight(width)}');
     }
     result.add(formatRowThree(lines.last, qty, price));
     return result;

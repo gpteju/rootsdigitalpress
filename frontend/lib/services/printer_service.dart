@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -101,8 +101,8 @@ class PrinterService {
       text: TextSpan(
         text: text,
         style: TextStyle(
-          fontFamily: 'RobotoMono',
-          fontFamilyFallback: const ['monospace', 'Courier', 'Courier New'],
+          fontFamily: 'Segoe UI',
+          fontFamilyFallback: const ['Roboto', 'Arial', 'sans-serif'],
           fontSize: size,
           fontWeight: weight,
           color: color,
@@ -118,14 +118,16 @@ class PrinterService {
   /// Interprets tagged text lines (DBC:, CB:, C:, B:, L:, BC:, D:)
   /// and renders crisp monochrome raster imagery onto an in-memory 576px Canvas.
   static Future<ui.Image> drawTextToReceiptImage(String rawText) async {
-    // 3-Column Width configurations (matches 80mm layout)
-    final double itemColW = usableWidth * 0.52; // 274.5px
-    final double qtyColW = usableWidth * 0.16;  // 84.5px
-    final double totalColW = usableWidth * 0.32; // 169.0px
+    // Col width configurations (matches NeuGen POS fractions)
+    final double itemColW = usableWidth * 0.42;
+    final double qtyColW = usableWidth * 0.14;
+    final double rateColW = usableWidth * 0.20;
+    final double totalColW = usableWidth * 0.24;
 
     final double itemColX = margin;
     final double qtyColX = itemColX + itemColW;
-    final double totalColX = qtyColX + qtyColW;
+    final double rateColX = qtyColX + qtyColW;
+    final double totalColX = rateColX + rateColW;
 
     final List<void Function(Canvas)> drawOps = [];
     // NeuGen balanced top margin: 24.0px
@@ -487,138 +489,49 @@ class PrinterService {
     );
   }
 
-  /// Generates ESC/POS byte sequence directly in Flutter matching PHP reference implementation
-  static List<int> generateThermalReceiptBytes(ReceiptPrintData data) {
-    final List<int> bytes = [];
 
-    void addStr(String s) => bytes.addAll(utf8.encode(s));
-    void addBytes(List<int> b) => bytes.addAll(b);
-
-    const int esc = 0x1B;
-    const int gs  = 0x1D;
-
-    addBytes([esc, 0x40]);              // ESC @ (Initialize)
-    addBytes([esc, 0x61, 0x01]);        // ESC a 1 (Center Align)
-    addBytes([esc, 0x45, 0x01]);        // ESC E 1 (Bold ON)
-    addStr('${data.companyName}\n');
-    addBytes([esc, 0x45, 0x00]);        // ESC E 0 (Bold OFF)
-
-    if (data.companyAddress != null && data.companyAddress!.trim().isNotEmpty) {
-      addStr('${data.companyAddress!.trim()}\n');
-    }
-    if (data.companyPhone != null && data.companyPhone!.trim().isNotEmpty) {
-      addStr('Ph: ${data.companyPhone!.trim()}\n');
-    }
-    if (data.companyGstin != null && data.companyGstin!.trim().isNotEmpty) {
-      addStr('GSTIN: ${data.companyGstin!.trim()}\n');
-    }
-
-    addStr('------------------------------------------------\n');
-    addStr('${data.title}\n');
-    addStr('------------------------------------------------\n');
-
-    addBytes([esc, 0x61, 0x00]);        // ESC a 0 (Left Align)
-    addStr('Customer: ${data.customerName}\n');
-    addStr('Bill No : ${data.invoiceNumber}\n');
-    addStr('Date    : ${data.invoiceDate}\n');
-    addStr('------------------------------------------------\n');
-
-    addStr('${"Item".padRight(20)} ${"Qty".padLeft(5)} ${"Rate".padLeft(8)} ${"Amount".padLeft(10)}\n');
-    addStr('------------------------------------------------\n');
-
-    for (final item in data.items) {
-      final desc = item.description;
-      final qty = item.quantity.toInt();
-      final rate = item.rate;
-      final amt = item.amount;
-
-      final qtyStr = qty.toString().padLeft(5);
-      final rateStr = rate.toStringAsFixed(2).padLeft(8);
-      final amtStr = amt.toStringAsFixed(2).padLeft(10);
-
-      if (desc.length > 20) {
-        addStr('$desc\n');
-        addStr('${"".padRight(20)} $qtyStr $rateStr $amtStr\n');
-      } else {
-        addStr('${desc.padRight(20)} $qtyStr $rateStr $amtStr\n');
-      }
-    }
-
-    addStr('------------------------------------------------\n');
-    addStr('${"Subtotal".padLeft(35)}: ${data.subtotal.toStringAsFixed(2).padLeft(10)}\n');
-
-    if (data.cgstAmount > 0) {
-      addStr('${"CGST".padLeft(35)}: ${data.cgstAmount.toStringAsFixed(2).padLeft(10)}\n');
-    }
-    if (data.sgstAmount > 0) {
-      addStr('${"SGST".padLeft(35)}: ${data.sgstAmount.toStringAsFixed(2).padLeft(10)}\n');
-    }
-    if (data.igstAmount > 0) {
-      addStr('${"IGST".padLeft(35)}: ${data.igstAmount.toStringAsFixed(2).padLeft(10)}\n');
-    } else if (data.taxAmount > 0 && data.cgstAmount <= 0 && data.sgstAmount <= 0) {
-      final taxLabel = data.taxName ?? 'GST';
-      addStr('${taxLabel.padLeft(35)}: ${data.taxAmount.toStringAsFixed(2).padLeft(10)}\n');
-    }
-
-    addBytes([esc, 0x45, 0x01]);        // ESC E 1 (Bold ON)
-    addStr('${"Grand Total".padLeft(35)}: ${data.grandTotal.toStringAsFixed(2).padLeft(10)}\n');
-    addBytes([esc, 0x45, 0x00]);        // ESC E 0 (Bold OFF)
-
-    addStr('------------------------------------------------\n');
-    addBytes([esc, 0x61, 0x01]);        // ESC a 1 (Center Align)
-    addStr('Thank you for your business!\n\n\n');
-
-    addBytes([gs, 0x56, 0x41, 0x03]);    // GS V \x41 \x03 (Cut Paper)
-
-    return bytes;
-  }
-
-  /// Generates ESC/POS test receipt byte sequence directly in Flutter matching PHP reference implementation
-  static List<int> generateTestReceiptBytes({required String companyName, required String ip, required int port}) {
-    final List<int> bytes = [];
-
-    void addStr(String s) => bytes.addAll(utf8.encode(s));
-    void addBytes(List<int> b) => bytes.addAll(b);
-
-    const int esc = 0x1B;
-    const int gs  = 0x1D;
-
-    addBytes([esc, 0x40]);              // ESC @
-    addBytes([esc, 0x61, 0x01]);        // ESC a 1
-    addBytes([esc, 0x45, 0x01]);        // ESC E 1
-    addBytes([esc, 0x21, 0x30]);        // ESC ! \x30 (Double Height/Width)
-    addStr('TEST PRINT\n');
-    addBytes([esc, 0x21, 0x00]);        // ESC ! \x00
-    addStr('$companyName\n');
-    addBytes([esc, 0x45, 0x00]);        // ESC E 0
-    addStr('--------------------------------\n');
-    addBytes([esc, 0x61, 0x00]);        // ESC a 0
-    addStr('Printer Connection OK\n');
-    addStr('IP   : $ip\n');
-    addStr('Port : $port\n');
-    addStr('Date : ${DateTime.now().toLocal().toString().substring(0, 19)}\n');
-    addStr('--------------------------------\n');
-    addBytes([esc, 0x61, 0x01]);        // ESC a 1
-    addStr('Test Print Successful\n\n\n');
-    addBytes([gs, 0x56, 0x41, 0x03]);    // GS V \x41 \x03 (Cut Paper)
-
-    return bytes;
-  }
-
-  /// Connects directly via TCP socket from Flutter to printer IP and Port, writing raw ESC/POS bytes
+  /// Connects to printer IP and Port, transmitting raw ESC/POS raster bytes.
+  /// On Web, automatically relays through backend since browsers cannot open raw TCP sockets.
+  /// On Desktop, connects directly via TCP socket with backend relay fallback.
   static Future<void> sendToTcpPrinter(String ip, int port, List<int> bytes) async {
+    if (kIsWeb) {
+      final api = ApiService();
+      final response = await api.post(ApiEndpoints.printReceipt, {
+        'bytes_base64': base64Encode(bytes),
+      });
+      if (!response.success) {
+        throw Exception(response.message);
+      }
+      return;
+    }
+
     Socket? socket;
     try {
       socket = await Socket.connect(ip, port, timeout: const Duration(seconds: 5));
       socket.add(bytes);
       await socket.flush();
-      await socket.close();
     } on SocketException catch (e) {
-      throw Exception('Could not connect to thermal printer at $ip:$port. Error: ${e.message}');
+      // Direct desktop socket failed, try backend relay
+      try {
+        final api = ApiService();
+        final response = await api.post(ApiEndpoints.printReceipt, {
+          'bytes_base64': base64Encode(bytes),
+        });
+        if (response.success) return;
+      } catch (_) {}
+      throw Exception('Could not connect to thermal printer at $ip:$port.\n\nTroubleshooting:\n1. Ensure the printer is ON.\n2. Ensure this device and the printer are on the SAME network.\n3. Verify the printer IP address ($ip).\n4. Check if port is $port.\n\n(Network error: ${e.message})');
     } catch (e) {
+      // In case of UnsupportedError (e.g. web environment), relay via backend
+      try {
+        final api = ApiService();
+        final response = await api.post(ApiEndpoints.printReceipt, {
+          'bytes_base64': base64Encode(bytes),
+        });
+        if (response.success) return;
+      } catch (_) {}
       throw Exception('Could not connect to thermal printer at $ip:$port. Error: $e');
     } finally {
-      socket?.destroy();
+      await socket?.close();
     }
   }
 
@@ -635,7 +548,7 @@ class PrinterService {
     throw Exception('Failed to fetch printer configuration: ${response.message}');
   }
 
-  /// Prints structured ReceiptPrintData directly to the thermal printer via TCP socket
+  /// Prints structured ReceiptPrintData directly to the thermal printer via TCP socket (Raster Image)
   static Future<void> printReceipt(ReceiptPrintData data, {String? printerName}) async {
     final settings = await _fetchPrinterSettings();
     if (!settings.printerEnabled) {
@@ -649,11 +562,23 @@ class PrinterService {
       throw Exception('Printer IP address is not configured. Please save a valid Printer IP in Printer Settings.');
     }
 
-    final escPosBytes = generateThermalReceiptBytes(data);
+    // 1. Generate tagged receipt text matching NeuGen POS
+    final receiptText = ReceiptGenerator.generateReceipt(data);
+
+    // 2. Draw canvas layout at 576px (80mm standard width)
+    final uiImage = await drawTextToReceiptImage(receiptText);
+
+    // 3. Convert to 'image' package Image
+    final imgImage = await convertUiImageToImgImage(uiImage);
+
+    // 4. Generate raw ESC/POS raster byte stream with feedLines: 1 (exact NeuGen specification)
+    final escPosBytes = await generateEscPosRasterBytes(imgImage, feedLines: 1);
+
+    // 5. Send raster bytes directly to TCP thermal printer
     await sendToTcpPrinter(ip, port, escPosBytes);
   }
 
-  /// Sends a test print ticket directly to the thermal printer via TCP socket
+  /// Sends a test print ticket directly to the thermal printer via TCP socket (Raster Image)
   static Future<void> printTest({String companyName = 'ROOTS DIGITAL PRESS', String? printerName}) async {
     final settings = await _fetchPrinterSettings();
     if (!settings.printerEnabled) {
@@ -667,7 +592,19 @@ class PrinterService {
       throw Exception('Printer IP address is not configured. Please save a valid Printer IP in Printer Settings.');
     }
 
-    final escPosBytes = generateTestReceiptBytes(companyName: companyName, ip: ip, port: port);
+    // 1. Generate test receipt tagged text matching NeuGen POS
+    final testText = ReceiptGenerator.generateTestReceipt(companyName);
+
+    // 2. Draw canvas layout at 576px (80mm standard width)
+    final uiImage = await drawTextToReceiptImage(testText);
+
+    // 3. Convert to 'image' package Image
+    final imgImage = await convertUiImageToImgImage(uiImage);
+
+    // 4. Generate raw ESC/POS raster byte stream with feedLines: 1
+    final escPosBytes = await generateEscPosRasterBytes(imgImage, feedLines: 1);
+
+    // 5. Send raster bytes directly to TCP thermal printer
     await sendToTcpPrinter(ip, port, escPosBytes);
   }
 }
