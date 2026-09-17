@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
 
                       const Text(
-                        'Printout Billing Software v1.0 • Multi-Platform',
+                        'Billing Software v1.0 • Multi-Platform',
                         style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                       ),
                     ],
