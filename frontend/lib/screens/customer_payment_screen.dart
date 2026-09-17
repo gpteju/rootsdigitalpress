@@ -41,6 +41,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   void _onCustomerChanged(CustomerModel? customer) {
     setState(() {
       _selectedCustomer = customer;
+      debugPrint('Selected Customer: ${_selectedCustomer!.advanceBalance}');
       _manualAllocControllers.clear();
     });
     if (customer != null && customer.id != null) {
@@ -128,7 +129,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     final pendingBills = paymentProvider.pendingBills;
 
     double totalPendingBalance = pendingBills.fold(0.0, (sum, b) => sum + (double.tryParse(b['balance_amount']?.toString() ?? '0') ?? 0.0));
-
+    debugPrint('Total Pending Bills: $pendingBills');
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(

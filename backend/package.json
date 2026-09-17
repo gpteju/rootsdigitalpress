@@ -1,7 +1,7 @@
 {
   "name": "printout-billing-backend",
   "version": "1.0.0",
-  "description": "Node.js REST API backend for Printout Company Billing Software",
+  "description": "Node.js REST API backend for Roots Digital Press - Billing Software",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

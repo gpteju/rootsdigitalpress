@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "printout-billing-api-v1",
-    "name": "Printout Company Billing REST API",
-    "description": "Complete Postman v2.1 Collection for Printout Company Billing REST API (Node.js & PHP)",
+    "name": "Roots Digital Press - Billing REST API",
+    "description": "Complete Postman v2.1 Collection for Roots Digital Press - Billing REST API (Node.js & PHP)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

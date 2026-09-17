@@ -16,7 +16,7 @@ class Database
             $port = $_ENV['DB_PORT'] ?? '3306';
             $db   = $_ENV['DB_NAME'] ?? 'printout_billing_db';
             $user = $_ENV['DB_USER'] ?? 'root';
-            $pass = $_ENV['DB_PASSWORD'] ?? '';
+            $pass = $_ENV['DB_PASSWORD'] ?? 'Mysql@root@1971';
 
             $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
             $options = [

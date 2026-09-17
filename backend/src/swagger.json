@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Printout Company Billing REST API",
+    "title": "Roots Digital Press - Billing REST API",
     "version": "1.0.0",
-    "description": "Complete OpenAPI 3.0 Documentation for Printout Company Billing Software Node.js REST API."
+    "description": "Complete OpenAPI 3.0 Documentation for Roots Digital Press - Billing Software Node.js REST API."
   },
   "servers": [
     {

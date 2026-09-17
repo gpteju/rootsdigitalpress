@@ -61,7 +61,7 @@ class PrintoutBillingApp extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
 
     return MaterialApp(
-      title: 'Printout Company Billing Software',
+      title: 'Roots Digital Press - Billing',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: auth.isLoading
@@ -144,19 +144,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
       // Reports & Aging Group
       case 'reports_daily_sales':
-        return const ReportsScreen(initialTabIndex: 0);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 0);
       case 'reports_customer_wise':
-        return const ReportsScreen(initialTabIndex: 1);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 1);
       case 'reports_customer_aging':
-        return const ReportsScreen(initialTabIndex: 2);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 2);
       case 'reports_customer_pending':
-        return const ReportsScreen(initialTabIndex: 3);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 3);
       case 'reports_supplier_purchases':
-        return const ReportsScreen(initialTabIndex: 4);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 4);
       case 'reports_stock':
-        return const ReportsScreen(initialTabIndex: 5);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 5);
       case 'reports_customer_payment':
-        return const ReportsScreen(initialTabIndex: 6);
+        return ReportsScreen(key: ValueKey(_selectedKey), initialTabIndex: 6);
 
       // Printer Settings
       case 'printer':
@@ -304,7 +304,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           children: [
             const Icon(Icons.print, color: Colors.white, size: 24),
             const SizedBox(width: 10),
-            const Text('Printout Company Billing Software', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Roots Digital Press - Billing', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(width: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

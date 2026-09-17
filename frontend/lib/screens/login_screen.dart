@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'Printout Billing Software',
+                        'Roots Digital Press - Billing Software',
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         textAlign: TextAlign.center,
                       ),
